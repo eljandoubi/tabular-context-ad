@@ -12,6 +12,7 @@ from contextad.report import (
     compute_table,
     contamination_table,
     context_size_table,
+    dataset_table,
     fmt,
     markdown,
     mean_std,
@@ -69,14 +70,18 @@ def adbench_run(dataset, shift=0.0):
         "knn",
         "pca",
         "masked_mlp",
+        "masked_mlp_mse",
         "context_net_k0",
         "context_net",
+        "context_net_mse",
         "knn_context",
         "mahalanobis_context",
     ]
     return {
         "config": {"dataset": dataset},
         "train": {"seconds": 50.0},
+        "shape": {"train": [700, 9], "test": [300, 9]},
+        "anomaly_rate": {"train": 0.1, "test": 0.2},
         "main": {m: block(0.8 + shift) for m in methods},
         "context_size": {
             k: {"context_net": block(0.7 + 0.02 * i + shift)}
@@ -166,6 +171,12 @@ def test_ablation_and_compute_tables():
     header, body = compute_table(runs, [adbench_run("a")])
     assert body[0][1:] == ["30", "10", "2,000, 1,000"]
     assert body[1][1] == "50"
+
+
+def test_dataset_table_reports_size_and_anomaly_share():
+    header, body = dataset_table([adbench_run("b"), adbench_run("a")])
+    assert header == ["table", "rows", "columns", "anomalies"]
+    assert body == [["a", "1,000", "9", "13.0 %"], ["b", "1,000", "9", "13.0 %"]]
 
 
 def test_markdown_layout():

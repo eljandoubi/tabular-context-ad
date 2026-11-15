@@ -16,6 +16,7 @@ from contextad.report import (
     compute_table,
     contamination_table,
     context_size_table,
+    dataset_table,
     load,
     markdown,
     paired_differences,
@@ -71,6 +72,9 @@ def build_sections(root: Path):
             ("Synthetic, training rows and loss", "ablation", ablation_table(variants))
         )
     if adbench:
+        sections.append(
+            ("ADBench tables used", "adbench_tables", dataset_table(adbench))
+        )
         sections.append(("ADBench, AUROC", "adbench_auroc", adbench_table(adbench)))
         sections.append(
             ("ADBench, AUPRC", "adbench_auprc", adbench_table(adbench, "auprc"))

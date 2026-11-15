@@ -16,6 +16,7 @@ SYNTHETIC_ROWS = [
     ("masked_mlp_mse", "Masked MLP, squared error"),
     ("context_net_k0", "Context model without context (k=0)"),
     ("context_net", "Context model (k=32)"),
+    ("context_net_mse", "Context model, squared error (k=32)"),
     ("knn_context", "kNN to the context rows (k=32)"),
     ("mahalanobis_context", "Mahalanobis to the context rows (k=32)"),
     ("oracle", "Oracle density of the true population"),
@@ -31,9 +32,11 @@ ADBENCH_ROWS = [
     ("lof", "LOF"),
     ("knn", "kNN"),
     ("pca", "PCA"),
-    ("masked_mlp", "Masked MLP"),
+    ("masked_mlp", "Masked MLP, standardized error"),
+    ("masked_mlp_mse", "Masked MLP, squared error"),
     ("context_net_k0", "Context model k=0"),
     ("context_net", "Context model k=32"),
+    ("context_net_mse", "Context model k=32, squared error"),
     ("knn_context", "kNN to context"),
     ("mahalanobis_context", "Mahalanobis to context"),
 ]
@@ -101,6 +104,20 @@ def adbench_table(runs, metric="auroc"):
             cells.append(fmt(values, 2))
             means.append(np.mean(values))
         body.append([name, *cells, f"{np.mean(means):.3f}"])
+    return header, body
+
+
+def dataset_table(adbench):
+    """Size and anomaly rate of each ADBench table, from the first split of each."""
+    header = ["table", "rows", "columns", "anomalies"]
+    body = []
+    for name, runs in adbench_by_dataset(adbench).items():
+        run = runs[0]
+        n_train, dim = run["shape"]["train"]
+        n_test = run["shape"]["test"][0]
+        rate = run["anomaly_rate"]
+        share = (rate["train"] * n_train + rate["test"] * n_test) / (n_train + n_test)
+        body.append([name, f"{n_train + n_test:,}", str(dim), f"{share * 100:.1f} %"])
     return header, body
 
 
