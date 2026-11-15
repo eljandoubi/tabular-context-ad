@@ -41,6 +41,8 @@ def parse_args():
     p.add_argument("--train-rows", type=int, default=128)
     p.add_argument("--refresh-every", type=int, default=250)
     p.add_argument("--trim", type=float, default=0.10)
+    p.add_argument("--clean-train", action="store_true")
+    p.add_argument("--main-only", action="store_true")
     p.add_argument("--test-pops", type=int, default=8)
     p.add_argument("--test-rows", type=int, default=2000)
     p.add_argument("--pool-rows", type=int, default=512)
@@ -59,13 +61,14 @@ def thin(losses, every=100):
 def bank_maker(args):
     """Function of the refresh round: standardised rows of new training populations."""
     stats = {}
+    rate = 0.0 if args.clean_train else None
 
     def make(round_):
         rng = np.random.default_rng([args.seed, 11, round_])
         world = make_world(rng, args.train_pops)
         rows = np.stack(
             [
-                world.sample_rows(i, args.train_rows, rng)[0]
+                world.sample_rows(i, args.train_rows, rng, rate=rate)[0]
                 for i in range(args.train_pops)
             ]
         )
@@ -139,6 +142,42 @@ def summarize_all(scores, data):
     return {n: summarize(data["kind"], s, data["group"]) for n, s in scores.items()}
 
 
+def contamination_runs(args, data, net, ctx_rng, pool_rng):
+    """Context model and references when the context holds some anomalies."""
+    out = {}
+    for rate in CONTAMINATION:
+        pools = {
+            g: (
+                data["world"].sample_rows(g, args.pool_rows, pool_rng, rate=rate)[0]
+                - data["mean"]
+            )
+            / data["std"]
+            for g in data["pools"]
+        }
+        contexts = group_contexts(pools, data["group"], args.k, ctx_rng, args.block)
+        columns = np.arange(data["x"].shape[1])
+        scores = context_methods(columns, data, net, contexts, args.block)
+        out[str(rate)] = summarize_all(scores, data)
+    return out
+
+
+def schema_runs(args, data, mlp, net, ctx_rng, cols_rng):
+    """Every method on random halves of the columns; baselines are refit on them."""
+    out = []
+    for _ in range(args.schema_repeats):
+        columns = random_columns(data["x"].shape[1], 0.5, cols_rng)
+        full = group_contexts(data["pools"], data["group"], args.k, ctx_rng, args.block)
+        empty = group_contexts(data["pools"], data["group"], 0, ctx_rng, args.block)
+        scores = fixed_methods(columns, data, mlp, args.seed)
+        scores.update(context_methods(columns, data, net, full, args.block))
+        free = context_methods(columns, data, net, empty, args.block, False)
+        scores["context_net_k0"] = free["context_net"]
+        out.append(
+            {"columns": columns.tolist(), "methods": summarize_all(scores, data)}
+        )
+    return out
+
+
 def main():
     args = parse_args()
     torch.set_num_threads(args.threads)
@@ -197,36 +236,12 @@ def main():
     result["main"] = summarize_all(main_scores, data)
     print("main table done", flush=True)
 
-    contamination = {}
-    for rate in CONTAMINATION:
-        pools = {
-            g: (
-                data["world"].sample_rows(g, args.pool_rows, extra_rng, rate=rate)[0]
-                - data["mean"]
-            )
-            / data["std"]
-            for g in data["pools"]
-        }
-        contexts = group_contexts(pools, data["group"], args.k, ctx_rng, block)
-        contamination[str(rate)] = summarize_all(
-            context_methods(all_columns, data, net, contexts, block), data
+    if not args.main_only:
+        result["contamination"] = contamination_runs(
+            args, data, net, ctx_rng, extra_rng
         )
-    result["contamination"] = contamination
-    print("contamination done", flush=True)
-
-    schema = []
-    for _ in range(args.schema_repeats):
-        columns = random_columns(dim, 0.5, cols_rng)
-        contexts = group_contexts(data["pools"], data["group"], args.k, ctx_rng, block)
-        empty = group_contexts(data["pools"], data["group"], 0, ctx_rng, block)
-        scores = fixed_methods(columns, data, mlp, args.seed)
-        scores.update(context_methods(columns, data, net, contexts, block))
-        free = context_methods(columns, data, net, empty, block, False)
-        scores["context_net_k0"] = free["context_net"]
-        schema.append(
-            {"columns": columns.tolist(), "methods": summarize_all(scores, data)}
-        )
-    result["schema"] = schema
+        print("contamination done", flush=True)
+        result["schema"] = schema_runs(args, data, mlp, net, ctx_rng, cols_rng)
     result["seconds"] = time.time() - started
 
     out = Path(args.out)
