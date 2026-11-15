@@ -126,12 +126,18 @@ def fixed_methods(columns, data, mlp, seed):
     return scores
 
 
-def context_methods(columns, data, net, contexts, block, with_references=True):
+def context_methods(
+    columns, data, net, contexts, block, with_references=True, squared=False
+):
     """Scores of the context model and of the two context references."""
     x, group = data["x"], data["group"]
     scores = {
         "context_net": context_net_scores(net, x, group, contexts, columns, block)
     }
+    if squared:
+        scores["context_net_mse"] = context_net_scores(
+            net, x, group, contexts, columns, block, normalise=False
+        )
     if with_references:
         for name in ("knn_context", "mahalanobis_context"):
             scores[name] = reference_scores(name, x, group, contexts, columns, block)
@@ -169,7 +175,9 @@ def schema_runs(args, data, mlp, net, ctx_rng, cols_rng):
         full = group_contexts(data["pools"], data["group"], args.k, ctx_rng, args.block)
         empty = group_contexts(data["pools"], data["group"], 0, ctx_rng, args.block)
         scores = fixed_methods(columns, data, mlp, args.seed)
-        scores.update(context_methods(columns, data, net, full, args.block))
+        scores.update(
+            context_methods(columns, data, net, full, args.block, squared=True)
+        )
         free = context_methods(columns, data, net, empty, args.block, False)
         scores["context_net_k0"] = free["context_net"]
         out.append(
@@ -232,7 +240,9 @@ def main():
         )
     result["context_size"] = sweep
     main_scores = fixed_methods(all_columns, data, mlp, args.seed)
-    main_scores.update(context_methods(all_columns, data, net, sizes[args.k], block))
+    main_scores.update(
+        context_methods(all_columns, data, net, sizes[args.k], block, squared=True)
+    )
     result["main"] = summarize_all(main_scores, data)
     print("main table done", flush=True)
 

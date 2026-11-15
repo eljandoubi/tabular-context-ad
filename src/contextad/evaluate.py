@@ -24,12 +24,14 @@ def group_contexts(pools, group, k: int, rng: np.random.Generator, block: int = 
     return out
 
 
-def context_net_scores(net, x, group, contexts, columns, block: int = 50):
+def context_net_scores(
+    net, x, group, contexts, columns, block: int = 50, normalise: bool = True
+):
     """Scores of the context model; rows of a group are cut into consecutive blocks."""
     out = np.zeros(len(x))
     for g, ctx in contexts.items():
         m = group == g
-        out[m] = score_context_net(net, x[m], ctx, columns, block)
+        out[m] = score_context_net(net, x[m], ctx, columns, block, normalise=normalise)
     return out
 
 

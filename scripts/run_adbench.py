@@ -85,12 +85,16 @@ def main():
     def contexts_of(k):
         return group_contexts(pools, group, k, rng, block)
 
-    def context_scores(columns, contexts, with_references=True):
+    def context_scores(columns, contexts, with_references=True, squared=False):
         scores = {
             "context_net": context_net_scores(
                 net, z_test, group, contexts, columns, block
             )
         }
+        if squared:
+            scores["context_net_mse"] = context_net_scores(
+                net, z_test, group, contexts, columns, block, normalise=False
+            )
         if with_references:
             for name in ("knn_context", "mahalanobis_context"):
                 scores[name] = reference_scores(
@@ -112,7 +116,7 @@ def main():
         scores["context_net_k0"] = context_scores(columns, contexts_of(0), False)[
             "context_net"
         ]
-        scores.update(context_scores(columns, contexts_of(args.k)))
+        scores.update(context_scores(columns, contexts_of(args.k), squared=True))
         return scores
 
     result = {

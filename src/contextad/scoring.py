@@ -68,6 +68,7 @@ def score_context_net(
     block: int = 50,
     max_groups: int = 12,
     chunk: int = 32,
+    normalise: bool = True,
 ):
     """Scores of rows x (n, d); block b of `block` consecutive rows uses context[b]."""
     x = np.asarray(x, dtype=np.float32)
@@ -90,5 +91,5 @@ def score_context_net(
         def predict(a, o, memory=memory):
             return model.decode(a, o, memory)
 
-        out.append(group_scores(predict, part, avail, groups))
+        out.append(group_scores(predict, part, avail, groups, normalise))
     return torch.cat(out).reshape(-1)[:n].numpy()

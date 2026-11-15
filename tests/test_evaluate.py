@@ -49,6 +49,11 @@ def test_context_net_scores_follow_the_group_labels():
     for g in (0, 1):
         direct = score_context_net(net, x[group == g], ctx[g], cols, block=20)
         assert np.allclose(scores[group == g], direct)
+    raw = context_net_scores(net, x, group, ctx, cols, block=20, normalise=False)
+    direct = score_context_net(
+        net, x[group == 1], ctx[1], cols, block=20, normalise=False
+    )
+    assert np.allclose(raw[group == 1], direct) and not np.allclose(raw, scores)
 
 
 def test_reference_scores_match_a_direct_call():

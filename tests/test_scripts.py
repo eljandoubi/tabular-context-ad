@@ -34,7 +34,14 @@ def test_synthetic_script_runs_end_to_end_on_a_tiny_setup(tmp_path):
     assert {"main", "context_size", "contamination", "schema", "train"} <= set(result)
     assert set(result["context_size"]) == {"0", "4", "8", "16", "32", "64"}
     assert len(result["schema"][0]["columns"]) == 5
-    for name in ("iforest", "masked_mlp", "context_net", "oracle", "knn_context"):
+    for name in (
+        "iforest",
+        "masked_mlp",
+        "context_net",
+        "context_net_mse",
+        "oracle",
+        "knn_context",
+    ):
         assert 0.0 <= result["main"][name]["auroc"] <= 1.0
     assert result["main"]["oracle"]["auroc"] > 0.9
 
@@ -58,5 +65,10 @@ def test_adbench_script_runs_end_to_end_on_a_tiny_table(tmp_path):
     result = json.loads(path.read_text())
     assert result["shape"] == {"train": [168, 5], "test": [72, 5]}
     assert result["main"]["iforest"]["auroc"] > 0.9
-    assert set(result["main"]) >= {"masked_mlp", "context_net", "context_net_k0"}
+    assert set(result["main"]) >= {
+        "masked_mlp",
+        "context_net",
+        "context_net_k0",
+        "context_net_mse",
+    }
     assert result["train"]["net_best_step"] == 50

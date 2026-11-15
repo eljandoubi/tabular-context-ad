@@ -118,6 +118,23 @@ def test_context_scores_work_without_context_rows(nets):
     assert scores.shape == (12,) and np.isfinite(scores).all()
 
 
+def test_context_scores_can_skip_the_division_by_the_predicted_variance():
+    torch.manual_seed(5)
+    net = ContextNet(DIM).eval()
+    with torch.no_grad():
+        net.head.weight.zero_()
+        net.head.bias.zero_()
+        net.head.bias[DIM:] = float(np.log(4.0))
+    gen = torch.Generator().manual_seed(6)
+    x = torch.randn(10, DIM, generator=gen)
+    ctx = torch.randn(1, 5, DIM, generator=gen)
+    cols = np.arange(DIM)
+    raw = score_context_net(net, x, ctx, cols, block=10, normalise=False)
+    scaled = score_context_net(net, x, ctx, cols, block=10)
+    assert np.allclose(raw, (x.numpy() ** 2).mean(axis=1), atol=1e-5)
+    assert np.allclose(scaled, raw / 4.0, atol=1e-5)
+
+
 def test_context_scores_need_a_context_per_block(nets):
     net, _ = nets
     with pytest.raises(ValueError):
