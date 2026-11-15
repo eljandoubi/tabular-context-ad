@@ -1,0 +1,793 @@
+{
+ "config": {
+  "seed": 4,
+  "steps": 3000,
+  "train_pops": 256,
+  "train_rows": 128,
+  "refresh_every": 250,
+  "trim": 0.1,
+  "clean_train": false,
+  "main_only": false,
+  "test_pops": 8,
+  "test_rows": 2000,
+  "pool_rows": 512,
+  "block": 50,
+  "k": 32,
+  "schema_repeats": 3,
+  "threads": 2,
+  "out": "results/synthetic"
+ },
+ "train": {
+  "load_start": 8.24853515625,
+  "mlp_seconds": 98.12617707252502,
+  "net_seconds": 141.84209322929382,
+  "load_end": 11.9150390625,
+  "mlp_loss": [
+   0.31255282074213026,
+   0.30142592653632166,
+   0.31463856860995293,
+   0.3179082341492176,
+   0.313686685860157,
+   0.3220431718230248,
+   0.32044943541288373,
+   0.3085956817865372,
+   0.2980829952657223,
+   0.29457040518522265,
+   0.3011913065612316,
+   0.2961739820241928,
+   0.3046022446453571,
+   0.3069850951433182,
+   0.304245892316103,
+   0.3009886388480663,
+   0.2969805473089218,
+   0.3049318473041058,
+   0.29642891228199003,
+   0.2938821417093277,
+   0.3118663901090622,
+   0.30320276707410815,
+   0.3011233614385128,
+   0.3002196379005909,
+   0.30354674741625787,
+   0.30156105235219,
+   0.3014196828007698,
+   0.3032899461686611,
+   0.30623328387737275,
+   0.3021408587694168
+  ],
+  "net_loss": [
+   0.22137714557349683,
+   0.07581170667544938,
+   0.023984378298337106,
+   -0.015613231651004754,
+   -0.05825074634514749,
+   -0.017869659531861544,
+   -0.06169225731631741,
+   -0.05718692809343338,
+   -0.0985779596323846,
+   -0.11470995235722511,
+   -0.09555645844186074,
+   -0.09620530285406857,
+   -0.11185026037390344,
+   -0.10607015824803966,
+   -0.10114410022040829,
+   -0.09459966592490673,
+   -0.12725752682541497,
+   -0.13427151463925838,
+   -0.15062056997208856,
+   -0.12355878963135183,
+   -0.13721557187265718,
+   -0.12037233982700854,
+   -0.20430537419393657,
+   -0.15899975188658572,
+   -0.1586220480548218,
+   -0.12613240187056363,
+   -0.15190857898443938,
+   -0.14028310257475823,
+   -0.14320366678759455,
+   -0.14902817798778414
+  ],
+  "parameters": {
+   "mlp": 142100,
+   "context_net": 146452
+  }
+ },
+ "context_size": {
+  "0": {
+   "context_net": {
+    "auroc": 0.7115467779156079,
+    "auprc": 0.24938491135158722,
+    "auroc_contextual": 0.5165619792232579,
+    "auroc_ordinary": 0.9161309456268786,
+    "auroc_pooled": 0.6991023454252171
+   }
+  },
+  "4": {
+   "context_net": {
+    "auroc": 0.9363260563097852,
+    "auprc": 0.4476550163894871,
+    "auroc_contextual": 0.9440925714985937,
+    "auroc_ordinary": 0.9298420977617357,
+    "auroc_pooled": 0.9318833379360789
+   },
+   "knn_context": {
+    "auroc": 0.9248860929669829,
+    "auprc": 0.49779308569704434,
+    "auroc_contextual": 0.908676452157317,
+    "auroc_ordinary": 0.9424750325874425,
+    "auroc_pooled": 0.9181484272514776
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9154581820924202,
+    "auprc": 0.39766093104222594,
+    "auroc_contextual": 0.8972861944291208,
+    "auroc_ordinary": 0.9350707791447643,
+    "auroc_pooled": 0.9144119739944306
+   }
+  },
+  "8": {
+   "context_net": {
+    "auroc": 0.9577885429931734,
+    "auprc": 0.5713673291074237,
+    "auroc_contextual": 0.9677583038954001,
+    "auroc_ordinary": 0.9480625536930839,
+    "auroc_pooled": 0.9563278330807214
+   },
+   "knn_context": {
+    "auroc": 0.9551168425144341,
+    "auprc": 0.6080599442895925,
+    "auroc_contextual": 0.9500957577438077,
+    "auroc_ordinary": 0.9605985180303928,
+    "auroc_pooled": 0.9522867246033722
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9588704977622896,
+    "auprc": 0.606347470766881,
+    "auroc_contextual": 0.9594434868899046,
+    "auroc_ordinary": 0.9587381327069278,
+    "auroc_pooled": 0.9614986857487078
+   }
+  },
+  "16": {
+   "context_net": {
+    "auroc": 0.9717134250960284,
+    "auprc": 0.6647612302283372,
+    "auroc_contextual": 0.9780008952956114,
+    "auroc_ordinary": 0.9648737898141514,
+    "auroc_pooled": 0.9699849908495601
+   },
+   "knn_context": {
+    "auroc": 0.9742237394723294,
+    "auprc": 0.6906068730975101,
+    "auroc_contextual": 0.9756861229823904,
+    "auroc_ordinary": 0.972808424290387,
+    "auroc_pooled": 0.9722109943984983
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9775201738016002,
+    "auprc": 0.7324422896529992,
+    "auroc_contextual": 0.9796103906824731,
+    "auroc_ordinary": 0.9754236887991092,
+    "auroc_pooled": 0.9758979582084321
+   }
+  },
+  "32": {
+   "context_net": {
+    "auroc": 0.9802702234494272,
+    "auprc": 0.7611228658336693,
+    "auroc_contextual": 0.9854962958328717,
+    "auroc_ordinary": 0.9746074614535938,
+    "auroc_pooled": 0.9763536924519172
+   },
+   "knn_context": {
+    "auroc": 0.9850882379209827,
+    "auprc": 0.7799419825843912,
+    "auroc_contextual": 0.9875420242371036,
+    "auroc_ordinary": 0.9825753282326282,
+    "auroc_pooled": 0.983695724350136
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9875130907949359,
+    "auprc": 0.8351396329628484,
+    "auroc_contextual": 0.9890969584716256,
+    "auroc_ordinary": 0.9854900630298432,
+    "auroc_pooled": 0.9876820085087796
+   }
+  },
+  "64": {
+   "context_net": {
+    "auroc": 0.9817195719398109,
+    "auprc": 0.7875144763859849,
+    "auroc_contextual": 0.9804896325158242,
+    "auroc_ordinary": 0.983565170277367,
+    "auroc_pooled": 0.9784890031837833
+   },
+   "knn_context": {
+    "auroc": 0.9901762935948057,
+    "auprc": 0.830973253436348,
+    "auroc_contextual": 0.9920068170370119,
+    "auroc_ordinary": 0.9882717499426487,
+    "auroc_pooled": 0.9895036968957517
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9924092889772398,
+    "auprc": 0.8817763429033768,
+    "auroc_contextual": 0.9947766042570885,
+    "auroc_ordinary": 0.9896527394950164,
+    "auroc_pooled": 0.9928828272640088
+   }
+  }
+ },
+ "main": {
+  "iforest": {
+   "auroc": 0.7137731699767714,
+   "auprc": 0.3482666767173057,
+   "auroc_contextual": 0.5113430767079121,
+   "auroc_ordinary": 0.9252879454915196,
+   "auroc_pooled": 0.703717009352711
+  },
+  "lof": {
+   "auroc": 0.7130747976729177,
+   "auprc": 0.3527723885905412,
+   "auroc_contextual": 0.5128757837607789,
+   "auroc_ordinary": 0.9236454702061175,
+   "auroc_pooled": 0.7009885063029238
+  },
+  "knn": {
+   "auroc": 0.7165055446452215,
+   "auprc": 0.3577761437381511,
+   "auroc_contextual": 0.5217856871578428,
+   "auroc_ordinary": 0.9224740284298202,
+   "auroc_pooled": 0.70531520067233
+  },
+  "pca": {
+   "auroc": 0.6077130773868875,
+   "auprc": 0.22664316691735742,
+   "auroc_contextual": 0.5669492686303674,
+   "auroc_ordinary": 0.6556037882057862,
+   "auroc_pooled": 0.6045392492745993
+  },
+  "iforest_testpool": {
+   "auroc": 0.7127087100346201,
+   "auprc": 0.3363505619953475,
+   "auroc_contextual": 0.49116441958064244,
+   "auroc_ordinary": 0.9450506057661379,
+   "auroc_pooled": 0.7034294938262482
+  },
+  "lof_testpool": {
+   "auroc": 0.738905451647848,
+   "auprc": 0.4827889130640748,
+   "auroc_contextual": 0.49687647933150636,
+   "auroc_ordinary": 0.996966338588592,
+   "auroc_pooled": 0.736428966355008
+  },
+  "knn_testpool": {
+   "auroc": 0.7516713922616156,
+   "auprc": 0.4860628129389042,
+   "auroc_contextual": 0.5240833409089048,
+   "auroc_ordinary": 0.9967680987027487,
+   "auroc_pooled": 0.7502903248471418
+  },
+  "pca_testpool": {
+   "auroc": 0.6921083225517156,
+   "auprc": 0.28166270306391145,
+   "auroc_contextual": 0.5400908697385112,
+   "auroc_ordinary": 0.8581770749698102,
+   "auroc_pooled": 0.6811868250465184
+  },
+  "masked_mlp": {
+   "auroc": 0.7170571224718261,
+   "auprc": 0.3049431859200127,
+   "auroc_contextual": 0.5312669553067466,
+   "auroc_ordinary": 0.9119082413617164,
+   "auroc_pooled": 0.708479914605732
+  },
+  "masked_mlp_mse": {
+   "auroc": 0.7164456349979489,
+   "auprc": 0.3556347196728222,
+   "auroc_contextual": 0.5150768058315851,
+   "auroc_ordinary": 0.9269044931801397,
+   "auroc_pooled": 0.7057301855774811
+  },
+  "oracle": {
+   "auroc": 0.9999230113490158,
+   "auprc": 0.9982159204503442,
+   "auroc_contextual": 0.9999960969821866,
+   "auroc_ordinary": 0.9998368431010362,
+   "auroc_pooled": 0.9999228146237684
+  },
+  "context_net": {
+   "auroc": 0.9802702234494272,
+   "auprc": 0.7611228658336693,
+   "auroc_contextual": 0.9854962958328717,
+   "auroc_ordinary": 0.9746074614535938,
+   "auroc_pooled": 0.9763536924519172
+  },
+  "context_net_mse": {
+   "auroc": 0.9821770934685443,
+   "auprc": 0.8007862196114006,
+   "auroc_contextual": 0.9823409028118644,
+   "auroc_ordinary": 0.9819246961421606,
+   "auroc_pooled": 0.980489239507244
+  },
+  "knn_context": {
+   "auroc": 0.9850882379209827,
+   "auprc": 0.7799419825843912,
+   "auroc_contextual": 0.9875420242371036,
+   "auroc_ordinary": 0.9825753282326282,
+   "auroc_pooled": 0.983695724350136
+  },
+  "mahalanobis_context": {
+   "auroc": 0.9875130907949359,
+   "auprc": 0.8351396329628484,
+   "auroc_contextual": 0.9890969584716256,
+   "auroc_ordinary": 0.9854900630298432,
+   "auroc_pooled": 0.9876820085087796
+  }
+ },
+ "contamination": {
+  "0.0": {
+   "context_net": {
+    "auroc": 0.9863576415736666,
+    "auprc": 0.7935588239447391,
+    "auroc_contextual": 0.9943420695248817,
+    "auroc_ordinary": 0.9782257318081651,
+    "auroc_pooled": 0.9860245660621122
+   },
+   "knn_context": {
+    "auroc": 0.985905478220112,
+    "auprc": 0.7914124367897182,
+    "auroc_contextual": 0.9885347417940062,
+    "auroc_ordinary": 0.9832990897336731,
+    "auroc_pooled": 0.9853287625969656
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9925390050185017,
+    "auprc": 0.8910887674176753,
+    "auroc_contextual": 0.9955275615409274,
+    "auroc_ordinary": 0.989276291527381,
+    "auroc_pooled": 0.9939889618101514
+   }
+  },
+  "0.05": {
+   "context_net": {
+    "auroc": 0.9730023535095396,
+    "auprc": 0.7332775482216553,
+    "auroc_contextual": 0.9704468023929994,
+    "auroc_ordinary": 0.9754484242628154,
+    "auroc_pooled": 0.9706021333356943
+   },
+   "knn_context": {
+    "auroc": 0.9842595936330413,
+    "auprc": 0.7742086889727245,
+    "auroc_contextual": 0.9860140091517928,
+    "auroc_ordinary": 0.9824402625339729,
+    "auroc_pooled": 0.9830722254212534
+   },
+   "mahalanobis_context": {
+    "auroc": 0.983826648624751,
+    "auprc": 0.8129118029864958,
+    "auroc_contextual": 0.9829295833327188,
+    "auroc_ordinary": 0.9852131390304831,
+    "auroc_pooled": 0.9854613398314339
+   }
+  },
+  "0.1": {
+   "context_net": {
+    "auroc": 0.962923703965774,
+    "auprc": 0.716900721377199,
+    "auroc_contextual": 0.9534037932782375,
+    "auroc_ordinary": 0.9739119513278898,
+    "auroc_pooled": 0.9623922199864948
+   },
+   "knn_context": {
+    "auroc": 0.9834372693526066,
+    "auprc": 0.7618000610747284,
+    "auroc_contextual": 0.984120647025855,
+    "auroc_ordinary": 0.9829206174193826,
+    "auroc_pooled": 0.9825353330248189
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9821756862436315,
+    "auprc": 0.8131336352606433,
+    "auroc_contextual": 0.9832734270380841,
+    "auroc_ordinary": 0.9814424881221692,
+    "auroc_pooled": 0.9837105938858512
+   }
+  },
+  "0.2": {
+   "context_net": {
+    "auroc": 0.9362191296919022,
+    "auprc": 0.5968198930960327,
+    "auroc_contextual": 0.9045717315274676,
+    "auroc_ordinary": 0.9687589639884673,
+    "auroc_pooled": 0.9339214859002182
+   },
+   "knn_context": {
+    "auroc": 0.9790742896842839,
+    "auprc": 0.723453901410938,
+    "auroc_contextual": 0.9794324061860075,
+    "auroc_ordinary": 0.9788452704326844,
+    "auroc_pooled": 0.9784998999427806
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9704303499228075,
+    "auprc": 0.7009324241585164,
+    "auroc_contextual": 0.9668075100967292,
+    "auroc_ordinary": 0.9745149336432473,
+    "auroc_pooled": 0.9730554932207971
+   }
+  }
+ },
+ "schema": [
+  {
+   "columns": [
+    0,
+    3,
+    6,
+    8,
+    9
+   ],
+   "methods": {
+    "iforest": {
+     "auroc": 0.713626259452716,
+     "auprc": 0.3507719026366841,
+     "auroc_contextual": 0.5511497326439956,
+     "auroc_ordinary": 0.8904675825190187,
+     "auroc_pooled": 0.7021271041102461
+    },
+    "lof": {
+     "auroc": 0.698361669584452,
+     "auprc": 0.3273566762826341,
+     "auroc_contextual": 0.5433938762574129,
+     "auroc_ordinary": 0.867074064382333,
+     "auroc_pooled": 0.6879167088064768
+    },
+    "knn": {
+     "auroc": 0.7087162996883911,
+     "auprc": 0.34045748197229186,
+     "auroc_contextual": 0.5538325633419293,
+     "auroc_ordinary": 0.8777405271247494,
+     "auroc_pooled": 0.6953455742529562
+    },
+    "pca": {
+     "auroc": 0.5990744101871694,
+     "auprc": 0.22664040862389762,
+     "auroc_contextual": 0.5554478846305182,
+     "auroc_ordinary": 0.6510508631977887,
+     "auroc_pooled": 0.6017996224500023
+    },
+    "iforest_testpool": {
+     "auroc": 0.7277957790306622,
+     "auprc": 0.34726951964238706,
+     "auroc_contextual": 0.5531202344242322,
+     "auroc_ordinary": 0.9163389945447249,
+     "auroc_pooled": 0.7145663220453126
+    },
+    "lof_testpool": {
+     "auroc": 0.7152270381695787,
+     "auprc": 0.4131753593337042,
+     "auroc_contextual": 0.47571766207830246,
+     "auroc_ordinary": 0.9705911618426203,
+     "auroc_pooled": 0.7104471201284819
+    },
+    "knn_testpool": {
+     "auroc": 0.759518120295751,
+     "auprc": 0.430564928496583,
+     "auroc_contextual": 0.561854166383124,
+     "auroc_ordinary": 0.9727443669268423,
+     "auroc_pooled": 0.7491171071284214
+    },
+    "pca_testpool": {
+     "auroc": 0.626123987575472,
+     "auprc": 0.2148175193603251,
+     "auroc_contextual": 0.5005514443227356,
+     "auroc_ordinary": 0.7570038728848116,
+     "auroc_pooled": 0.6160631394538839
+    },
+    "masked_mlp": {
+     "auroc": 0.7142457599680044,
+     "auprc": 0.33814286501163493,
+     "auroc_contextual": 0.5478260891762656,
+     "auroc_ordinary": 0.8945029541586311,
+     "auroc_pooled": 0.7027944170909308
+    },
+    "masked_mlp_mse": {
+     "auroc": 0.7137195493034155,
+     "auprc": 0.34871364925972703,
+     "auroc_contextual": 0.5460220398361004,
+     "auroc_ordinary": 0.8954836386183522,
+     "auroc_pooled": 0.7016769317541659
+    },
+    "oracle": {
+     "auroc": 0.9848745815832989,
+     "auprc": 0.9296430311694349,
+     "auroc_contextual": 0.9788814441526085,
+     "auroc_ordinary": 0.9923945780661054,
+     "auroc_pooled": 0.9836654177391745
+    },
+    "context_net": {
+     "auroc": 0.9461438607664827,
+     "auprc": 0.6950060167262602,
+     "auroc_contextual": 0.9273290346915073,
+     "auroc_ordinary": 0.9695234431557221,
+     "auroc_pooled": 0.9436016671587234
+    },
+    "context_net_mse": {
+     "auroc": 0.946201191115617,
+     "auprc": 0.7070081035105715,
+     "auroc_contextual": 0.9255385695986398,
+     "auroc_ordinary": 0.9715086321852199,
+     "auroc_pooled": 0.9443073458117115
+    },
+    "knn_context": {
+     "auroc": 0.9563514468075154,
+     "auprc": 0.7006340951858352,
+     "auroc_contextual": 0.9446636430582518,
+     "auroc_ordinary": 0.9707528744822786,
+     "auroc_pooled": 0.9523703799302585
+    },
+    "mahalanobis_context": {
+     "auroc": 0.9511625199659506,
+     "auprc": 0.733052254491076,
+     "auroc_contextual": 0.9424560199833799,
+     "auroc_ordinary": 0.9640100089450938,
+     "auroc_pooled": 0.9497321156659185
+    },
+    "context_net_k0": {
+     "auroc": 0.7150517435713298,
+     "auprc": 0.3132180753633878,
+     "auroc_contextual": 0.5498670819644015,
+     "auroc_ordinary": 0.8939150648060813,
+     "auroc_pooled": 0.7047283647971574
+    }
+   }
+  },
+  {
+   "columns": [
+    0,
+    1,
+    4,
+    6,
+    7
+   ],
+   "methods": {
+    "iforest": {
+     "auroc": 0.6728735736844795,
+     "auprc": 0.27888932835640595,
+     "auroc_contextual": 0.4762372830601767,
+     "auroc_ordinary": 0.8757927689565539,
+     "auroc_pooled": 0.6652162626409499
+    },
+    "lof": {
+     "auroc": 0.6682424941888576,
+     "auprc": 0.2868564450728259,
+     "auroc_contextual": 0.469072016529291,
+     "auroc_ordinary": 0.8736329091685479,
+     "auroc_pooled": 0.6604485900558674
+    },
+    "knn": {
+     "auroc": 0.6685460236718006,
+     "auprc": 0.2928539676755799,
+     "auroc_contextual": 0.4698755393880558,
+     "auroc_ordinary": 0.8750936704940553,
+     "auroc_pooled": 0.6603111319814314
+    },
+    "pca": {
+     "auroc": 0.5657502615727358,
+     "auprc": 0.2025201243268061,
+     "auroc_contextual": 0.46147473771696557,
+     "auroc_ordinary": 0.6795301932308982,
+     "auroc_pooled": 0.5553232427074859
+    },
+    "iforest_testpool": {
+     "auroc": 0.6873667177901972,
+     "auprc": 0.28538437236039316,
+     "auroc_contextual": 0.4845341571713046,
+     "auroc_ordinary": 0.8992176037756413,
+     "auroc_pooled": 0.6787876084326839
+    },
+    "lof_testpool": {
+     "auroc": 0.7217806853512461,
+     "auprc": 0.3971225475982837,
+     "auroc_contextual": 0.4990810983266475,
+     "auroc_ordinary": 0.9572397535412693,
+     "auroc_pooled": 0.7188656610093191
+    },
+    "knn_testpool": {
+     "auroc": 0.7160367163121331,
+     "auprc": 0.40217686808661607,
+     "auroc_contextual": 0.4896085579715801,
+     "auroc_ordinary": 0.9559478997035233,
+     "auroc_pooled": 0.7129861784827829
+    },
+    "pca_testpool": {
+     "auroc": 0.6307510439861337,
+     "auprc": 0.22003074322133992,
+     "auroc_contextual": 0.4959851041264196,
+     "auroc_ordinary": 0.7742144486272852,
+     "auroc_pooled": 0.6234610172419645
+    },
+    "masked_mlp": {
+     "auroc": 0.6723200960789366,
+     "auprc": 0.2924208167123153,
+     "auroc_contextual": 0.4768417491562293,
+     "auroc_ordinary": 0.8735244319005702,
+     "auroc_pooled": 0.6643927627813024
+    },
+    "masked_mlp_mse": {
+     "auroc": 0.6742090352893917,
+     "auprc": 0.29455649549734053,
+     "auroc_contextual": 0.4765601971552187,
+     "auroc_ordinary": 0.8775637685937838,
+     "auroc_pooled": 0.6654365814869286
+    },
+    "oracle": {
+     "auroc": 0.9794369536552405,
+     "auprc": 0.9301466992438263,
+     "auroc_contextual": 0.9792226466854832,
+     "auroc_ordinary": 0.979929679042846,
+     "auroc_pooled": 0.9825191013942289
+    },
+    "context_net": {
+     "auroc": 0.9309366273677147,
+     "auprc": 0.5933586178248144,
+     "auroc_contextual": 0.9092591975349151,
+     "auroc_ordinary": 0.9550724197245231,
+     "auroc_pooled": 0.9258430147064248
+    },
+    "context_net_mse": {
+     "auroc": 0.9320088907709196,
+     "auprc": 0.6062638594415679,
+     "auroc_contextual": 0.9098299340629216,
+     "auroc_ordinary": 0.9568354367547413,
+     "auroc_pooled": 0.9297507513939622
+    },
+    "knn_context": {
+     "auroc": 0.9422744419512246,
+     "auprc": 0.6140848742226455,
+     "auroc_contextual": 0.9263023140110216,
+     "auroc_ordinary": 0.960170631154984,
+     "auroc_pooled": 0.9429067717568266
+    },
+    "mahalanobis_context": {
+     "auroc": 0.9363890618768953,
+     "auprc": 0.6380523318294798,
+     "auroc_contextual": 0.9146684802943194,
+     "auroc_ordinary": 0.9612277247136223,
+     "auroc_pooled": 0.9391595352486884
+    },
+    "context_net_k0": {
+     "auroc": 0.6750012239405085,
+     "auprc": 0.282296339758507,
+     "auroc_contextual": 0.47484347791633774,
+     "auroc_ordinary": 0.8809536878429683,
+     "auroc_pooled": 0.6648518455080211
+    }
+   }
+  },
+  {
+   "columns": [
+    0,
+    2,
+    4,
+    6,
+    9
+   ],
+   "methods": {
+    "iforest": {
+     "auroc": 0.6585114902359864,
+     "auprc": 0.3162183982734291,
+     "auroc_contextual": 0.4477324951853215,
+     "auroc_ordinary": 0.8795966161491561,
+     "auroc_pooled": 0.6481760017271363
+    },
+    "lof": {
+     "auroc": 0.667388322985627,
+     "auprc": 0.31040616914225083,
+     "auroc_contextual": 0.47278369959897176,
+     "auroc_ordinary": 0.8713598366466894,
+     "auroc_pooled": 0.6562649156483021
+    },
+    "knn": {
+     "auroc": 0.6586307151555206,
+     "auprc": 0.31699598003563667,
+     "auroc_contextual": 0.4548303442707258,
+     "auroc_ordinary": 0.8727834900473267,
+     "auroc_pooled": 0.6481485328138303
+    },
+    "pca": {
+     "auroc": 0.6391865632365166,
+     "auprc": 0.24436485031352553,
+     "auroc_contextual": 0.5459585081837377,
+     "auroc_ordinary": 0.7352684104404313,
+     "auroc_pooled": 0.6329411975697049
+    },
+    "iforest_testpool": {
+     "auroc": 0.6836175958197414,
+     "auprc": 0.3030635432301885,
+     "auroc_contextual": 0.47015803512172827,
+     "auroc_ordinary": 0.907368393591317,
+     "auroc_pooled": 0.6700020964910279
+    },
+    "lof_testpool": {
+     "auroc": 0.7223314544744088,
+     "auprc": 0.40134083159182016,
+     "auroc_contextual": 0.4920564898548663,
+     "auroc_ordinary": 0.9648226982350874,
+     "auroc_pooled": 0.7185081111047168
+    },
+    "knn_testpool": {
+     "auroc": 0.7197981536294207,
+     "auprc": 0.41912930358882183,
+     "auroc_contextual": 0.48586589139350156,
+     "auroc_ordinary": 0.9643807831386964,
+     "auroc_pooled": 0.714751339932456
+    },
+    "pca_testpool": {
+     "auroc": 0.6601004538482643,
+     "auprc": 0.22687948913639608,
+     "auroc_contextual": 0.567641379592438,
+     "auroc_ordinary": 0.7605876293035312,
+     "auroc_pooled": 0.6518759054383795
+    },
+    "masked_mlp": {
+     "auroc": 0.6634113591507189,
+     "auprc": 0.32606614802854605,
+     "auroc_contextual": 0.4494549248434784,
+     "auroc_ordinary": 0.8866989189445598,
+     "auroc_pooled": 0.6506311777387386
+    },
+    "masked_mlp_mse": {
+     "auroc": 0.6631139569109741,
+     "auprc": 0.326088446090113,
+     "auroc_contextual": 0.44747936851342274,
+     "auroc_ordinary": 0.888365947595712,
+     "auroc_pooled": 0.6502886108777578
+    },
+    "oracle": {
+     "auroc": 0.9763570020452986,
+     "auprc": 0.8914780321544555,
+     "auroc_contextual": 0.9666774533714846,
+     "auroc_ordinary": 0.9877570397780354,
+     "auroc_pooled": 0.9768902443246331
+    },
+    "context_net": {
+     "auroc": 0.9128484146693658,
+     "auprc": 0.5594886518862106,
+     "auroc_contextual": 0.8740094974729671,
+     "auroc_ordinary": 0.9571941140579372,
+     "auroc_pooled": 0.9055092083856463
+    },
+    "context_net_mse": {
+     "auroc": 0.91393289256957,
+     "auprc": 0.5808836157707746,
+     "auroc_contextual": 0.8749396627222348,
+     "auroc_ordinary": 0.958391220332398,
+     "auroc_pooled": 0.9066549571910607
+    },
+    "knn_context": {
+     "auroc": 0.93728912015521,
+     "auprc": 0.6437132175435796,
+     "auroc_contextual": 0.9109907798633639,
+     "auroc_ordinary": 0.966508551462077,
+     "auroc_pooled": 0.9341620091535046
+    },
+    "mahalanobis_context": {
+     "auroc": 0.9282923094024782,
+     "auprc": 0.6467350804105334,
+     "auroc_contextual": 0.9009592827595456,
+     "auroc_ordinary": 0.9599956282887301,
+     "auroc_pooled": 0.929554155700384
+    },
+    "context_net_k0": {
+     "auroc": 0.6592809527343283,
+     "auprc": 0.2950514995384328,
+     "auroc_contextual": 0.4421015328290361,
+     "auroc_ordinary": 0.8864112822237264,
+     "auroc_pooled": 0.6484765706628146
+    }
+   }
+  }
+ ],
+ "seconds": 290.90001702308655
+}
