@@ -62,18 +62,19 @@ def _update(model, opt, sched, loss):
 
 
 @torch.no_grad()
-def _validation_loss_mlp(model, val, repeats: int = 4):
+def _validation_loss_mlp(model, val, trim: float = 0.0, repeats: int = 4):
     gen = torch.Generator().manual_seed(VALIDATION_SEED)
     x = val.repeat(repeats, 1)
     avail = schema_mask(len(x), val.shape[1], gen)
     hidden = hide_mask(avail, gen)
     mean, logvar = model(x, avail & ~hidden)
-    return gaussian_nll(mean, logvar, x, hidden).item()
+    return gaussian_nll(mean, logvar, x, hidden, trim).item()
 
 
 @torch.no_grad()
-def _validation_loss_context(model, pool, val, k: int = 32, repeats: int = 4):
+def _validation_loss_context(model, pool, val, trim: float = 0.0, k: int = 32):
     gen = torch.Generator().manual_seed(VALIDATION_SEED)
+    repeats = 4
     k = min(k, len(pool))
     picks = torch.rand(repeats, len(pool), generator=gen).argsort(dim=1)[:, :k]
     x = val.unsqueeze(0).expand(repeats, -1, -1)
@@ -81,7 +82,7 @@ def _validation_loss_context(model, pool, val, k: int = 32, repeats: int = 4):
     avail_rows = avail[:, None, :].expand(-1, len(val), -1)
     hidden = hide_mask(avail_rows, gen)
     mean, logvar = model(x, avail_rows & ~hidden, pool[picks], avail)
-    return gaussian_nll(mean, logvar, x, hidden).item()
+    return gaussian_nll(mean, logvar, x, hidden, trim).item()
 
 
 def train_context_net(
@@ -128,7 +129,7 @@ def train_context_net(
         _update(model, opt, sched, loss)
         fit.losses.append(loss.item())
         if val is not None and (step + 1) % val_every == 0:
-            score = _validation_loss_context(model, current[0], val)
+            score = _validation_loss_context(model, current[0], val, trim)
             fit.val_losses.append((step + 1, score))
             if score < best:
                 best, fit.best_step = score, step + 1
@@ -170,7 +171,7 @@ def train_masked_mlp(
         _update(model, opt, sched, loss)
         fit.losses.append(loss.item())
         if val is not None and (step + 1) % val_every == 0:
-            score = _validation_loss_mlp(model, val)
+            score = _validation_loss_mlp(model, val, trim)
             fit.val_losses.append((step + 1, score))
             if score < best:
                 best, fit.best_step = score, step + 1

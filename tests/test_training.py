@@ -107,6 +107,17 @@ def test_context_net_keeps_the_weights_with_the_best_validation_loss():
     assert kept == pytest.approx(best, abs=1e-5)
 
 
+def test_masked_mlp_validation_uses_the_trimmed_loss():
+    rows = toy_bank(n_pop=1, n_rows=96)
+    fit = train_masked_mlp(
+        rows[:, :72], steps=40, rows=32, trim=0.2, val=rows[0, 72:], val_every=20
+    )
+    step, best = min(fit.val_losses, key=lambda item: item[1])
+    kept = _validation_loss_mlp(fit.model, rows[0, 72:], trim=0.2)
+    assert fit.best_step == step and kept == pytest.approx(best, abs=1e-5)
+    assert kept != pytest.approx(_validation_loss_mlp(fit.model, rows[0, 72:]))
+
+
 def test_masked_mlp_keeps_the_weights_with_the_best_validation_loss():
     rows = toy_bank(n_pop=1, n_rows=96)
     fit = train_masked_mlp(
