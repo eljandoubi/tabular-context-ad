@@ -14,6 +14,7 @@ import numpy as np
 import torch
 
 from contextad.adbench import (
+    MIN_VALIDATION,
     TABLES,
     load_table,
     split_table,
@@ -65,7 +66,7 @@ def main():
 
     rng = np.random.default_rng(args.seed)
     order = rng.permutation(len(z_train))
-    n_val = max(16, int(args.val_fraction * len(z_train)))
+    n_val = max(MIN_VALIDATION, int(args.val_fraction * len(z_train)))
     bank_rows, val_rows = validation_split(x_train, order, n_val)
     bank = torch.tensor(z_train[bank_rows], dtype=torch.float32)[None]
     val = torch.tensor(z_train[val_rows], dtype=torch.float32)

@@ -18,6 +18,7 @@ TABLES = {
     "breastw": "4_breastw",
 }
 CLIP = 8.0
+MIN_VALIDATION = 16
 
 
 def load_table(name: str, root: str | Path = "data/adbench"):
@@ -64,15 +65,25 @@ def has_copy(rows: np.ndarray, pool: np.ndarray) -> np.ndarray:
     return np.isin(group[len(pool) :], group[: len(pool)])
 
 
-def validation_split(x: np.ndarray, order: np.ndarray, n_val: int):
+def validation_split(
+    x: np.ndarray, order: np.ndarray, n_val: int, minimum: int = MIN_VALIDATION
+):
     """Row numbers (bank, validation): first n_val of order, identical rows together.
 
     A set of identical rows that the cut separated goes to the side of its first row
-    in x. Without repeated rows this is order[n_val:] and order[:n_val].
+    in x. If that leaves fewer than minimum validation rows, whole sets of identical
+    rows are added in the order of the permutation until there are minimum. Without
+    repeated rows and with n_val >= minimum this is order[n_val:] and order[:n_val].
     """
     in_val = np.zeros(len(x), dtype=bool)
     in_val[order[:n_val]] = True
     in_val = follow_first_row(in_val, x)
+    if in_val.sum() < minimum:
+        group = np.unique(x, axis=0, return_inverse=True)[1].reshape(-1)
+        for row in order[n_val:]:
+            in_val |= group == group[row]
+            if in_val.sum() >= minimum:
+                break
     return order[~in_val[order]], order[in_val[order]]
 
 

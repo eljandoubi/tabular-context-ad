@@ -3,6 +3,7 @@ import pytest
 from sklearn.model_selection import train_test_split
 
 from contextad.adbench import (
+    MIN_VALIDATION,
     TABLES,
     follow_first_row,
     has_copy,
@@ -126,8 +127,8 @@ def test_validation_split_is_the_permutation_cut_without_repeated_rows():
     rng = np.random.default_rng(0)
     x = rng.normal(size=(100, 3))
     order = rng.permutation(100)
-    bank, val = validation_split(x, order, 10)
-    assert np.array_equal(bank, order[10:]) and np.array_equal(val, order[:10])
+    bank, val = validation_split(x, order, 20)
+    assert np.array_equal(bank, order[20:]) and np.array_equal(val, order[:20])
 
 
 def test_validation_split_keeps_identical_rows_together(repeated_table):
@@ -136,6 +137,49 @@ def test_validation_split_keeps_identical_rows_together(repeated_table):
     bank, val = validation_split(x, order, 30)
     assert sorted(np.concatenate([bank, val])) == list(range(len(x)))
     assert len(val) > 0 and not has_copy(x[val], x[bank]).any()
+
+
+def test_validation_split_keeps_the_minimum_when_the_first_rows_sit_in_the_bank():
+    x = np.zeros((100, 2))
+    x[20:] = np.arange(20, 100)[:, None]
+    order = np.array([*range(1, 17), 0, *range(17, 100)])
+    assert len(validation_split(x, order, 16, minimum=0)[1]) == 0
+    bank, val = validation_split(x, order, 16)
+    assert len(val) >= MIN_VALIDATION
+    assert sorted(np.concatenate([bank, val])) == list(range(100))
+    assert not has_copy(x[val], x[bank]).any()
+
+
+def test_validation_split_only_adds_rows_when_the_cut_is_below_the_minimum(
+    repeated_table,
+):
+    x, _ = repeated_table
+    short = 0
+    for seed in range(20):
+        order = np.random.default_rng(seed).permutation(len(x))
+        for n_val in (16, 24, 32):
+            cut = validation_split(x, order, n_val, minimum=0)
+            kept = validation_split(x, order, n_val)
+            if len(cut[1]) >= MIN_VALIDATION:
+                assert same_split(cut, kept)
+            else:
+                short += 1
+                assert len(kept[1]) >= MIN_VALIDATION
+                assert set(cut[1]) <= set(kept[1])
+            assert sorted(np.concatenate(kept)) == list(range(len(x)))
+            assert not has_copy(x[kept[1]], x[kept[0]]).any()
+    assert short > 0
+
+
+def test_validation_split_is_unchanged_for_the_sizes_run_adbench_uses(repeated_table):
+    x, y = repeated_table
+    for seed in range(5):
+        x_train = split_table(x, y, seed)[0]
+        order = np.random.default_rng(seed).permutation(len(x_train))
+        n_val = max(MIN_VALIDATION, int(0.1 * len(x_train)))
+        cut = validation_split(x_train, order, n_val, minimum=0)
+        assert len(cut[1]) >= MIN_VALIDATION
+        assert same_split(cut, validation_split(x_train, order, n_val))
 
 
 def test_standardize_uses_the_training_statistics():
