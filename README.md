@@ -239,7 +239,7 @@ A synthetic seed takes about five minutes and an ADBench split between half a mi
 ## Limits
 
 - The synthetic populations are Gaussian mixtures with a known low-rank structure, and the two context references fit that structure. The gap between the learned model and the references says nothing about real populations. The oracle reaches 0.9999 because it uses the density that also defines the anomalies: a near-perfect reference in this generator, not a bound for other data.
-- The eight tables are small, have one population each, and are run with one fixed setting and five random splits. The trimmed share of 10 % is below the anomaly share of breastw, pima and satellite (31 to 35 %). These results are no claim about large benchmarks.
+- The eight tables are small, have one population each, and are run with one fixed setting and five random splits. The trimmed share of 10 % is below the anomaly share of breastw, pima and satellite (31 to 35 %). LOF is below chance on breastw (0.22 ± 0.08), and I did not test why. These results are no claim about large benchmarks.
 - The training rows are unlabeled but not clean, and the context model needs the trimmed loss to cope (training rows and loss table). The standardized-error score is much weaker than the squared error on the tables (0.711 against 0.885); I did not test why.
 - The context pools carry anomalies at each population's own rate, one context is drawn per block of 50 rows, and contamination was tested on synthetic data only. No latent-prediction variant was built.
 - Only exact copies are kept together: rows that differ in a rounding digit can still sit on both sides of a split.
