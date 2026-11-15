@@ -9,7 +9,8 @@ The study runs on a laptop CPU. It has a generator of synthetic populations with
 - On synthetic populations (Gaussian mixtures whose anomalies are kept by a density rule, which suits density-based references), detectors that score rows in isolation reach an AUROC of 0.692 (Isolation Forest) and sit at or below chance on contextual anomalies (0.457 to 0.485). The context model with 32 context rows reaches 0.973 ± 0.011, and 0.926 ± 0.020 with 4 rows.
 - The learned model is not what brings the gain. The Mahalanobis distance to the 32 context rows reaches 0.981 ± 0.011 and the kNN distance to them 0.978 ± 0.011. The context model is 0.008 ± 0.006 below the Mahalanobis distance (paired over seeds).
 - Anomalies inside the context hurt the learned model more than the two references. With 20 % anomalies in the context it falls to 0.935 ± 0.018, against 0.971 ± 0.014 for kNN and 0.959 ± 0.019 for Mahalanobis.
-- On the eight ADBench tables, which have one population each, the context does not help: 0.700 without context rows and 0.718 with 32, scored by the standardized prediction error. That score is far below Isolation Forest (0.877). The same networks scored with the plain squared error reach 0.867 (masked MLP) and 0.885 (context model).
+- On the eight ADBench tables (one population each; rows with identical feature vectors stay on one side of every split; five splits each, so 40 table and split pairs), the context model with 32 rows, scored by the standardized prediction error, reaches a mean AUROC of 0.711. Against the same network without context rows (0.696) the paired difference is +0.015 (95 % bootstrap interval -0.001 to +0.040; above zero in 7 of 8 tables and 31 of 40 splits). Against the masked MLP with the same score (0.684) it is +0.027 (-0.017 to +0.083; 4 of 8 tables). Against the kNN distance to the context rows (0.893) it is -0.182 and against Isolation Forest (0.879) it is -0.169, each above zero in at most 2 of 8 tables.
+- Exploratory: the squared-error score was added after a first, partial ADBench run in which the standardized score looked weak. With it the masked MLP reaches 0.867 and the context model 0.885. The context model is +0.018 above the masked MLP with that score (-0.001 to +0.042; 6 of 8 tables), -0.008 against the kNN distance to the context rows (-0.031 to +0.017; 3 of 8 tables) and +0.006 against Isolation Forest (-0.028 to +0.053; 3 of 8 tables). For the same context model the squared error is +0.174 above the standardized error (+0.086 to +0.278; 7 of 8 tables).
 - With a random half of the columns the neural models need no retraining. On synthetic data the context model goes from 0.973 ± 0.011 to 0.925 ± 0.011, the kNN distance to the context from 0.978 ± 0.011 to 0.942 ± 0.014, and the label-informed oracle density from 0.9999 to 0.980 ± 0.005. The detectors that score rows in isolation go from about 0.69 to about 0.67.
 
 ## Results
@@ -59,12 +60,12 @@ One context model is trained with k drawn from {0, 4, 8, 16, 32, 64}. k=0 is the
 
 | k | Context model | kNN to context | Mahalanobis to context | ADBench mean, context model |
 |---|---|---|---|---|
-| 0 | 0.691 ± 0.022 | n/a | n/a | 0.700 |
-| 4 | 0.926 ± 0.020 | 0.916 ± 0.015 | 0.896 ± 0.019 | 0.719 |
-| 8 | 0.951 ± 0.016 | 0.949 ± 0.014 | 0.943 ± 0.019 | 0.718 |
-| 16 | 0.965 ± 0.015 | 0.966 ± 0.013 | 0.967 ± 0.015 | 0.719 |
-| 32 | 0.973 ± 0.011 | 0.978 ± 0.011 | 0.981 ± 0.011 | 0.718 |
-| 64 | 0.979 ± 0.005 | 0.986 ± 0.007 | 0.987 ± 0.008 | 0.718 |
+| 0 | 0.691 ± 0.022 | n/a | n/a | 0.696 |
+| 4 | 0.926 ± 0.020 | 0.916 ± 0.015 | 0.896 ± 0.019 | 0.711 |
+| 8 | 0.951 ± 0.016 | 0.949 ± 0.014 | 0.943 ± 0.019 | 0.711 |
+| 16 | 0.965 ± 0.015 | 0.966 ± 0.013 | 0.967 ± 0.015 | 0.711 |
+| 32 | 0.973 ± 0.011 | 0.978 ± 0.011 | 0.981 ± 0.011 | 0.711 |
+| 64 | 0.979 ± 0.005 | 0.986 ± 0.007 | 0.987 ± 0.008 | 0.711 |
 
 ### Anomalies in the context set
 
@@ -89,7 +90,7 @@ The training rows are unlabeled and contain anomalies. Without trimming the loss
 
 ### ADBench tables
 
-Five random 70/30 splits per table. Anomalies are the minority class of each table.
+Five stratified 70/30 splits per table, in which rows with the same value in every column stay on one side of the split (the test sets of the tables with repeated rows hold a few rows more or less than 30 %: breastw 179 to 203 rows instead of 205). Anomalies are the minority class of each table.
 
 | table | rows | columns | anomalies |
 |---|---|---|---|
@@ -102,23 +103,51 @@ Five random 70/30 splits per table. Anomalies are the minority class of each tab
 | vowels | 1,456 | 12 | 3.4 % |
 | wbc | 223 | 9 | 4.5 % |
 
+Four tables repeat feature vectors (third column below). A plain stratified split cuts such sets of rows across the split, so test rows get exact copies among the training rows and in the scored contexts. The table counts them for the plain split of the same five seeds (normal / anomalous test rows, summed over the five splits; `scripts/count_duplicates.py` writes `results/duplicates.csv`). The reported runs use the split that keeps identical rows together, where every count is zero.
+
+| table | rows | rows in a repeated vector | plain split: copy in the training rows | plain split: copy in a scored context | grouped split: any copy |
+|---|---|---|---|---|---|
+| breastw | 683 | 280 | 390 of 665 / 6 of 360 | 168 of 665 / 0 of 360 | 0 |
+| cardio | 1,831 | 16 | 16 of 2,485 / 2 of 265 | 0 of 2,485 / 0 of 265 | 0 |
+| pima | 768 | 0 | 0 of 750 / 0 of 405 | 0 of 750 / 0 of 405 | 0 |
+| satellite | 6,435 | 0 | 0 of 6,600 / 0 of 3,055 | 0 of 6,600 / 0 of 3,055 | 0 |
+| shuttle | 49,097 | 0 | 0 of 68,385 / 0 of 5,265 | 0 of 68,385 / 0 of 5,265 | 0 |
+| thyroid | 3,772 | 163 | 211 of 5,520 / 0 of 140 | 4 of 5,520 / 0 of 140 | 0 |
+| vowels | 1,456 | 8 | 0 of 2,110 / 10 of 75 | 0 of 2,110 / 1 of 75 | 0 |
+| wbc | 223 | 0 | 0 of 320 / 0 of 15 | 0 of 320 / 0 of 15 | 0 |
+
+Clipping the standardized columns at 8 standard deviations makes 17 of the 73,650 shuttle test rows equal to a training row, none of them in a scored context (the `clipped_` columns of `results/duplicates.csv`).
+
 AUROC, mean ± standard deviation over the five splits; the last column is the mean over tables (AUPRC is in `results/adbench_auprc.csv`).
 
 | method | breastw | cardio | pima | satellite | shuttle | thyroid | vowels | wbc | mean |
 |---|---|---|---|---|---|---|---|---|---|
-| Isolation Forest | 0.99 ± 0.00 | 0.93 ± 0.01 | 0.67 ± 0.03 | 0.70 ± 0.02 | 1.00 ± 0.00 | 0.98 ± 0.00 | 0.76 ± 0.05 | 0.99 ± 0.01 | 0.877 |
-| LOF | 0.49 ± 0.05 | 0.58 ± 0.03 | 0.62 ± 0.02 | 0.56 ± 0.01 | 0.51 ± 0.02 | 0.67 ± 0.03 | 0.93 ± 0.01 | 0.93 ± 0.03 | 0.661 |
-| kNN | 0.98 ± 0.01 | 0.69 ± 0.03 | 0.70 ± 0.03 | 0.66 ± 0.01 | 0.67 ± 0.01 | 0.96 ± 0.00 | 0.97 ± 0.01 | 0.99 ± 0.02 | 0.828 |
-| PCA | 0.92 ± 0.02 | 0.75 ± 0.02 | 0.59 ± 0.03 | 0.65 ± 0.01 | 0.74 ± 0.05 | 0.94 ± 0.02 | 0.84 ± 0.03 | 0.96 ± 0.03 | 0.798 |
-| Masked MLP, standardized error | 0.58 ± 0.01 | 0.75 ± 0.03 | 0.59 ± 0.05 | 0.59 ± 0.01 | 0.84 ± 0.22 | 0.79 ± 0.02 | 0.81 ± 0.05 | 0.56 ± 0.15 | 0.688 |
-| Masked MLP, squared error | 0.97 ± 0.01 | 0.91 ± 0.03 | 0.66 ± 0.05 | 0.70 ± 0.01 | 0.92 ± 0.10 | 0.89 ± 0.02 | 0.92 ± 0.06 | 0.96 ± 0.03 | 0.867 |
-| Context model k=0 | 0.56 ± 0.03 | 0.72 ± 0.04 | 0.56 ± 0.05 | 0.57 ± 0.02 | 1.00 ± 0.00 | 0.86 ± 0.04 | 0.82 ± 0.04 | 0.52 ± 0.21 | 0.700 |
-| Context model k=32 | 0.61 ± 0.08 | 0.73 ± 0.04 | 0.56 ± 0.05 | 0.57 ± 0.02 | 1.00 ± 0.00 | 0.86 ± 0.04 | 0.82 ± 0.03 | 0.61 ± 0.16 | 0.718 |
-| Context model k=32, squared error | 0.97 ± 0.01 | 0.93 ± 0.02 | 0.66 ± 0.04 | 0.71 ± 0.01 | 1.00 ± 0.00 | 0.91 ± 0.01 | 0.92 ± 0.03 | 0.98 ± 0.01 | 0.885 |
-| kNN to context | 0.98 ± 0.00 | 0.92 ± 0.02 | 0.71 ± 0.02 | 0.75 ± 0.01 | 0.99 ± 0.00 | 0.96 ± 0.01 | 0.84 ± 0.06 | 0.99 ± 0.01 | 0.892 |
-| Mahalanobis to context | 0.97 ± 0.01 | 0.92 ± 0.01 | 0.66 ± 0.02 | 0.64 ± 0.01 | 0.98 ± 0.00 | 0.95 ± 0.01 | 0.82 ± 0.06 | 0.97 ± 0.02 | 0.864 |
+| Isolation Forest | 0.99 ± 0.01 | 0.93 ± 0.01 | 0.67 ± 0.03 | 0.70 ± 0.02 | 1.00 ± 0.00 | 0.98 ± 0.00 | 0.77 ± 0.02 | 0.99 ± 0.01 | 0.879 |
+| LOF | 0.22 ± 0.08 | 0.57 ± 0.04 | 0.62 ± 0.02 | 0.56 ± 0.01 | 0.51 ± 0.02 | 0.67 ± 0.04 | 0.93 ± 0.01 | 0.93 ± 0.03 | 0.627 |
+| kNN | 0.97 ± 0.01 | 0.69 ± 0.03 | 0.70 ± 0.03 | 0.66 ± 0.01 | 0.67 ± 0.01 | 0.96 ± 0.00 | 0.98 ± 0.00 | 0.99 ± 0.02 | 0.828 |
+| PCA | 0.91 ± 0.03 | 0.75 ± 0.02 | 0.59 ± 0.03 | 0.65 ± 0.01 | 0.74 ± 0.05 | 0.94 ± 0.02 | 0.84 ± 0.04 | 0.96 ± 0.03 | 0.796 |
+| Masked MLP, standardized error | 0.52 ± 0.08 | 0.76 ± 0.04 | 0.59 ± 0.05 | 0.59 ± 0.01 | 0.84 ± 0.22 | 0.76 ± 0.05 | 0.85 ± 0.04 | 0.56 ± 0.15 | 0.684 |
+| Masked MLP, squared error | 0.96 ± 0.01 | 0.91 ± 0.02 | 0.66 ± 0.05 | 0.70 ± 0.01 | 0.92 ± 0.10 | 0.89 ± 0.03 | 0.94 ± 0.02 | 0.96 ± 0.03 | 0.867 |
+| Context model k=0 | 0.53 ± 0.10 | 0.73 ± 0.04 | 0.56 ± 0.05 | 0.57 ± 0.02 | 1.00 ± 0.00 | 0.84 ± 0.09 | 0.83 ± 0.04 | 0.52 ± 0.21 | 0.696 |
+| Context model k=32 | 0.55 ± 0.12 | 0.73 ± 0.03 | 0.56 ± 0.05 | 0.57 ± 0.02 | 1.00 ± 0.00 | 0.84 ± 0.09 | 0.82 ± 0.05 | 0.61 ± 0.16 | 0.711 |
+| Context model k=32, squared error | 0.97 ± 0.01 | 0.92 ± 0.02 | 0.66 ± 0.04 | 0.71 ± 0.01 | 1.00 ± 0.00 | 0.92 ± 0.01 | 0.92 ± 0.03 | 0.98 ± 0.01 | 0.885 |
+| kNN to context | 0.98 ± 0.01 | 0.90 ± 0.02 | 0.71 ± 0.02 | 0.75 ± 0.01 | 0.99 ± 0.00 | 0.97 ± 0.01 | 0.86 ± 0.02 | 0.99 ± 0.01 | 0.893 |
+| Mahalanobis to context | 0.97 ± 0.01 | 0.89 ± 0.02 | 0.66 ± 0.02 | 0.64 ± 0.01 | 0.98 ± 0.00 | 0.95 ± 0.01 | 0.84 ± 0.04 | 0.97 ± 0.02 | 0.864 |
 
 ![AUROC per ADBench table](results/adbench.png)
+
+Paired differences in AUROC over the 8 tables and 5 splits (40 pairs). The mean is the mean over tables of the mean over splits. The interval resamples the tables with replacement, then the splits inside each drawn table (10,000 resamples, seed 0, `scripts/report.py`). The squared-error rows are exploratory: that score was added after a first, partial run.
+
+| paired difference in AUROC | mean | 95 % interval | tables above 0 | splits above 0 |
+|---|---|---|---|---|
+| standardized error: context k=32 minus k=0 | +0.015 | [-0.001, +0.040] | 7 of 8 | 31 of 40 |
+| standardized error: context k=32 minus masked MLP | +0.027 | [-0.017, +0.083] | 4 of 8 | 17 of 40 |
+| standardized error: context k=32 minus kNN to context | -0.182 | [-0.287, -0.088] | 1 of 8 | 6 of 40 |
+| standardized error: context k=32 minus Isolation Forest | -0.169 | [-0.288, -0.063] | 2 of 8 | 7 of 40 |
+| squared error: context k=32 minus masked MLP | +0.018 | [-0.001, +0.042] | 6 of 8 | 30 of 40 |
+| squared error: context k=32 minus kNN to context | -0.008 | [-0.031, +0.017] | 3 of 8 | 16 of 40 |
+| squared error: context k=32 minus Isolation Forest | +0.006 | [-0.028, +0.053] | 3 of 8 | 19 of 40 |
+| context k=32: squared minus standardized error | +0.174 | [+0.086, +0.278] | 7 of 8 | 36 of 40 |
 
 ### Schema change
 
@@ -126,27 +155,27 @@ At test time a random half of the columns is kept (5 of 10 on synthetic data, ab
 
 | method | synthetic, all columns | synthetic, half | ADBench, all | ADBench, half |
 |---|---|---|---|---|
-| Isolation Forest | 0.692 ± 0.021 | 0.671 ± 0.012 | 0.877 | 0.845 |
-| Local Outlier Factor | 0.691 ± 0.020 | 0.667 ± 0.012 | 0.661 | 0.655 |
-| kNN distance | 0.694 ± 0.021 | 0.666 ± 0.013 | 0.828 | 0.802 |
-| PCA reconstruction error | 0.583 ± 0.039 | 0.596 ± 0.022 | 0.798 | 0.688 |
-| Masked MLP, standardized error | 0.692 ± 0.027 | 0.671 ± 0.015 | 0.688 | 0.736 |
-| Masked MLP, squared error | 0.695 ± 0.021 | 0.671 ± 0.014 | 0.867 | 0.831 |
-| Context model without context (k=0) | 0.691 ± 0.022 | 0.670 ± 0.014 | 0.700 | 0.717 |
-| Context model (k=32) | 0.973 ± 0.011 | 0.925 ± 0.011 | 0.718 | 0.730 |
-| Context model, squared error (k=32) | 0.975 ± 0.009 | 0.926 ± 0.010 | 0.885 | 0.840 |
-| kNN to the context rows (k=32) | 0.978 ± 0.011 | 0.942 ± 0.014 | 0.892 | 0.856 |
-| Mahalanobis to the context rows (k=32) | 0.981 ± 0.011 | 0.935 ± 0.016 | 0.864 | 0.822 |
+| Isolation Forest | 0.692 ± 0.021 | 0.671 ± 0.012 | 0.879 | 0.846 |
+| Local Outlier Factor | 0.691 ± 0.020 | 0.667 ± 0.012 | 0.627 | 0.650 |
+| kNN distance | 0.694 ± 0.021 | 0.666 ± 0.013 | 0.828 | 0.805 |
+| PCA reconstruction error | 0.583 ± 0.039 | 0.596 ± 0.022 | 0.796 | 0.686 |
+| Masked MLP, standardized error | 0.692 ± 0.027 | 0.671 ± 0.015 | 0.684 | 0.735 |
+| Masked MLP, squared error | 0.695 ± 0.021 | 0.671 ± 0.014 | 0.867 | 0.832 |
+| Context model without context (k=0) | 0.691 ± 0.022 | 0.670 ± 0.014 | 0.696 | 0.720 |
+| Context model (k=32) | 0.973 ± 0.011 | 0.925 ± 0.011 | 0.711 | 0.730 |
+| Context model, squared error (k=32) | 0.975 ± 0.009 | 0.926 ± 0.010 | 0.885 | 0.841 |
+| kNN to the context rows (k=32) | 0.978 ± 0.011 | 0.942 ± 0.014 | 0.893 | 0.858 |
+| Mahalanobis to the context rows (k=32) | 0.981 ± 0.011 | 0.935 ± 0.016 | 0.864 | 0.825 |
 | Oracle density of the true population | 1.000 ± 0.000 | 0.980 ± 0.005 | n/a | n/a |
 
 ### Cost
 
-Two threads per job on a shared 10-core laptop (load average between 5 and 103 during the runs, so timings are rough).
+Two threads per job on a shared 10-core laptop (load average between 4 and 103 during the runs, so timings are rough). The ADBench row averages 40 runs: the four tables with repeated rows were re-run at a lower load (45 s on average) than the other four (139 s).
 
 | run | context model s | masked MLP s | parameters (context, MLP) |
 |---|---|---|---|
 | synthetic, one seed | 147 | 99 | 146,452, 142,100 |
-| ADBench, both models, one table | 121 |  |  |
+| ADBench, both models, one table | 92 |  |  |
 
 ## What is in the repo
 
@@ -159,14 +188,15 @@ src/contextad/
   scoring.py     prediction-error scores, context sampling, blocks of rows
   detectors.py   scikit-learn baselines, kNN and Mahalanobis to the context, oracle density
   evaluate.py    per-population metrics; metrics.py has AUROC and AUPRC
-  adbench.py     table loading, stratified splits, standardization
+  adbench.py     table loading, stratified splits that keep identical rows together, standardization
   report.py      table builders behind scripts/report.py
 scripts/
   download_adbench.sh   fetch the eight tables (pinned commit, SHA-256 checked)
   run_synthetic.py      one seed of the synthetic study
   run_adbench.py        one table and one split
+  count_duplicates.py   test rows with an exact copy in the training rows or a context
   report.py, figures.py tables and figures from results/
-tests/                  107 tests, about a minute on a laptop CPU
+tests/                  118 tests, about a minute on a laptop CPU
 results/                per-seed JSON, CSV tables, tables.md, two figures
 ```
 
@@ -182,6 +212,7 @@ for s in 0 1 2 3 4; do python scripts/run_synthetic.py --seed $s; done
 for d in cardio thyroid satellite shuttle pima wbc vowels breastw; do
   for s in 0 1 2 3 4; do python scripts/run_adbench.py --dataset $d --seed $s; done
 done
+python scripts/count_duplicates.py
 for s in 0 1 2 3 4; do
   python scripts/run_synthetic.py --seed $s --trim 0 --main-only --out results/ablation_plain
   python scripts/run_synthetic.py --seed $s --trim 0 --clean-train --main-only --out results/ablation_clean
@@ -190,7 +221,7 @@ python scripts/report.py && python scripts/figures.py
 pytest -q
 ```
 
-A synthetic seed takes about five minutes and an ADBench split about two minutes. Two runs of the synthetic script for seeds 0 to 3 gave identical AUROC values for every method they share.
+A synthetic seed takes about five minutes and an ADBench split between half a minute and five minutes, depending on the table and the load of the machine (`seconds` in each JSON file). Two runs of the synthetic script for seeds 0 to 3 gave identical AUROC values for every method they share.
 
 ## Method notes
 
@@ -202,15 +233,16 @@ A synthetic seed takes about five minutes and an ADBench split about two minutes
 - Score. Every available column is hidden in turn (in 12 groups when there are more than 12 columns) and predicted from the others and the context: $\mathrm{score}(x) = \frac{1}{|A|}\sum_{j\in A}(x_j-\mu_j)^2/\sigma_j^2$ over the available columns $A$. The squared-error variant drops $\sigma_j^2$.
 - Contexts. A block of 50 consecutive test rows shares one context of k rows from the pool, and the scored row is never in its context. One draw per block, no averaging over draws.
 - Baselines. Isolation Forest with 200 trees, LOF with 20 neighbours, mean distance to the 5 nearest rows, PCA reconstruction error with the components that explain 90 % of the variance (at most d minus 1). References: mean distance to the 5 nearest context rows, and the squared Mahalanobis distance under the Ledoit-Wolf covariance of the context rows. Oracle: minus the log density of the row under its true population.
-- ADBench. Stratified 70/30 splits with seeds 0 to 4, columns standardized with the training mean and standard deviation and clipped to ±8. The neural models train for 2000 steps on 90 % of the training rows and keep the weights of the step with the lowest trimmed loss on the other 10 % (at least 16 rows; no labels). The scikit-learn detectors use all training rows. Contexts are random training rows, anomalies included.
-- Choices made before the evaluated runs. The number of steps, the trimmed share, the size of the population bank and its refresh were set on one development world (seed 100, using its anomaly labels). No setting was tuned on the evaluated seeds or on ADBench labels. The squared-error rows were added after a first, partial ADBench run in which the standardized score looked weak; both scores are reported and the models were not changed.
+- ADBench. Stratified 70/30 splits with seeds 0 to 4. Rows with the same value in every column stay on one side of a split: a set of identical rows that the stratified draw cut goes to the side of its first row, so no test row has an exact copy among the training rows or in a context. Tables without repeated rows split as the plain draw does. Columns are standardized with the training mean and standard deviation and clipped to ±8. The neural models train for 2000 steps on about 90 % of the training rows and keep the weights of the step with the lowest trimmed loss on the rest (at least 16 rows; no labels; the same rule keeps identical rows on one side of that cut). The scikit-learn detectors use all training rows. Contexts are random training rows, anomalies included.
+- Choices made before the evaluated runs. The number of steps, the trimmed share, the size of the population bank and its refresh were set on one development world (seed 100, using its anomaly labels). No setting was tuned on the evaluated seeds or on ADBench labels. The squared-error rows were added after a first, partial ADBench run in which the standardized score looked weak, so they are exploratory; both scores are reported and the models were not changed.
 
 ## Limits
 
 - The synthetic populations are Gaussian mixtures with a known low-rank structure, and the two context references fit that structure. The gap between the learned model and the references says nothing about real populations. The oracle reaches 0.9999 because it uses the density that also defines the anomalies: a near-perfect reference in this generator, not a bound for other data.
 - The eight tables are small, have one population each, and are run with one fixed setting and five random splits. The trimmed share of 10 % is below the anomaly share of breastw, pima and satellite (31 to 35 %). These results are no claim about large benchmarks.
-- The training rows are unlabeled but not clean, and the context model needs the trimmed loss to cope (training rows and loss table). The standardized-error score is much weaker than the squared error on the tables (0.718 against 0.885); I did not test why.
+- The training rows are unlabeled but not clean, and the context model needs the trimmed loss to cope (training rows and loss table). The standardized-error score is much weaker than the squared error on the tables (0.711 against 0.885); I did not test why.
 - The context pools carry anomalies at each population's own rate, one context is drawn per block of 50 rows, and contamination was tested on synthetic data only. No latent-prediction variant was built.
+- Only exact copies are kept together: rows that differ in a rounding digit can still sit on both sides of a split.
 - Timings come from a shared laptop with a changing load.
 
 ## License
