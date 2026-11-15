@@ -195,8 +195,9 @@ scripts/
   run_synthetic.py      one seed of the synthetic study
   run_adbench.py        one table and one split
   count_duplicates.py   test rows with an exact copy in the training rows or a context
+  count_validation.py   validation rows of every run, with and without the minimum of 16
   report.py, figures.py tables and figures from results/
-tests/                  119 tests, about a minute on a laptop CPU
+tests/                  123 tests, about a minute on a laptop CPU
 results/                per-seed JSON, CSV tables, tables.md, two figures
 ```
 
@@ -213,6 +214,7 @@ for d in cardio thyroid satellite shuttle pima wbc vowels breastw; do
   for s in 0 1 2 3 4; do python scripts/run_adbench.py --dataset $d --seed $s; done
 done
 python scripts/count_duplicates.py
+python scripts/count_validation.py
 for s in 0 1 2 3 4; do
   python scripts/run_synthetic.py --seed $s --trim 0 --main-only --out results/ablation_plain
   python scripts/run_synthetic.py --seed $s --trim 0 --clean-train --main-only --out results/ablation_clean

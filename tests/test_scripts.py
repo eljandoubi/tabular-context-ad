@@ -128,3 +128,26 @@ def test_duplicate_count_finds_copies_in_the_plain_split_only(tmp_path):
     table = list(csv.DictReader((path.parent / "duplicate_rows.csv").open()))
     assert table[0]["rows"] == str(len(x)) and table[0]["distinct_rows"] == "150"
     assert table[0]["mixed_label_vectors"] == "1"
+
+
+def test_validation_count_applies_the_minimum_to_a_table_with_large_groups(tmp_path):
+    rng = np.random.default_rng(0)
+    x = rng.normal(size=(240, 4))
+    y = np.zeros(240, dtype=int)
+    y[120:144] = 1
+    for start in (0, 40, 80):
+        x[start : start + 40] = x[start]
+    np.savez(tmp_path / "6_cardio.npz", X=x, y=y)
+    path = run(
+        "count_validation.py",
+        tables="cardio",
+        seeds=5,
+        root=tmp_path,
+        out=tmp_path / "out",
+    )
+    reader = csv.DictReader(path.open())
+    rows = [{k: int(v) for k, v in r.items() if k != "table"} for r in reader]
+    assert [r["seed"] for r in rows] == [0, 1, 2, 3, 4]
+    assert all(r["kept"] >= 16 and r["copy_in_bank"] == 0 for r in rows)
+    assert any(r["grouped"] < 16 and r["kept"] > r["grouped"] for r in rows)
+    assert all(r["kept"] == r["grouped"] for r in rows if r["grouped"] >= 16)
