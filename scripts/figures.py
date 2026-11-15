@@ -1,7 +1,7 @@
 """Draw the README figures from results/.
 
 usage: python scripts/figures.py [results_dir]
-Writes context_size.png, contamination.png and adbench.png next to the JSON files.
+Writes context_size.png and adbench.png next to the JSON files.
 """
 
 import sys
@@ -15,7 +15,6 @@ import numpy as np  # noqa: E402
 
 from contextad.report import (  # noqa: E402
     CONTEXT_METHODS,
-    RATES,
     SIZES,
     adbench_by_dataset,
     load,
@@ -103,39 +102,17 @@ def context_size_figure(synthetic, adbench, path):
     plt.close(fig)
 
 
-def contamination_figure(synthetic, path):
-    fig, axes = plt.subplots(1, 2, figsize=(9, 3.8))
-    x = [float(r) * 100 for r in RATES]
-    for ax, title, metric in (
-        (axes[0], "all anomalies", "auroc"),
-        (axes[1], "contextual anomalies", "auroc_contextual"),
-    ):
-        for key, name in CONTEXT_METHODS:
-            curves = [
-                [r["contamination"][rate][key][metric] for rate in RATES]
-                for r in synthetic
-            ]
-            band(ax, x, curves, name, COLORS[key])
-        ax.set_title(title)
-        ax.set_xlabel("anomalies in the context set (%)")
-        ax.grid(alpha=0.3)
-    axes[0].set_ylabel("AUROC")
-    axes[0].legend(fontsize=8, loc="lower left")
-    fig.tight_layout()
-    fig.savefig(path, dpi=110)
-    plt.close(fig)
-
-
 def adbench_figure(adbench, path):
     by_dataset = adbench_by_dataset(adbench)
     methods = [
         ("iforest", "Isolation Forest", "tab:gray"),
-        ("masked_mlp", "masked MLP", "tab:orange"),
+        ("masked_mlp_mse", "masked MLP, squared error", "tab:orange"),
         ("context_net", "context model k=32", "tab:red"),
-        ("mahalanobis_context", "Mahalanobis to context", "tab:green"),
+        ("context_net_mse", "context model k=32, squared error", "tab:purple"),
+        ("knn_context", "kNN to context", "tab:blue"),
     ]
-    fig, ax = plt.subplots(figsize=(10, 3.8))
-    width = 0.2
+    fig, ax = plt.subplots(figsize=(11, 3.8))
+    width = 0.16
     x = np.arange(len(by_dataset))
     for i, (key, name, color) in enumerate(methods):
         means = [
@@ -146,7 +123,7 @@ def adbench_figure(adbench, path):
             for rs in by_dataset.values()
         ]
         ax.bar(
-            x + (i - 1.5) * width,
+            x + (i - 2) * width,
             means,
             width,
             yerr=stds,
@@ -158,7 +135,7 @@ def adbench_figure(adbench, path):
     ax.set_ylabel("AUROC")
     ax.set_ylim(0.4, 1.02)
     ax.grid(axis="y", alpha=0.3)
-    ax.legend(fontsize=8, ncol=4, loc="lower center")
+    ax.legend(fontsize=8, ncol=5, loc="lower center", bbox_to_anchor=(0.5, 1.0))
     fig.tight_layout()
     fig.savefig(path, dpi=110)
     plt.close(fig)
@@ -171,9 +148,6 @@ def main():
     if synthetic and adbench:
         context_size_figure(synthetic, adbench, root / "context_size.png")
         print(root / "context_size.png")
-    if synthetic:
-        contamination_figure(synthetic, root / "contamination.png")
-        print(root / "contamination.png")
     if adbench:
         adbench_figure(adbench, root / "adbench.png")
         print(root / "adbench.png")

@@ -1,0 +1,5 @@
+difference in AUROC,all,contextual,ordinary
+context model k=32 minus k=0,0.281 ± 0.022,0.511 ± 0.040,0.049 ± 0.019
+context model k=32 minus masked MLP,0.281 ± 0.025,0.512 ± 0.055,0.049 ± 0.020
+context model k=32 minus Isolation Forest,0.280 ± 0.020,0.515 ± 0.044,0.044 ± 0.023
+Mahalanobis to context minus context model k=32,0.008 ± 0.006,0.005 ± 0.009,0.011 ± 0.009

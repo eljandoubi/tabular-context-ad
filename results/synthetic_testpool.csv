@@ -1,0 +1,5 @@
+method,AUROC,AUROC contextual,AUROC ordinary,AUPRC
+"Isolation Forest, fit on test populations",0.707 ± 0.022,0.471 ± 0.041,0.943 ± 0.015,0.344 ± 0.033
+"Local Outlier Factor, fit on test populations",0.741 ± 0.010,0.485 ± 0.014,0.995 ± 0.002,0.486 ± 0.009
+"kNN distance, fit on test populations",0.750 ± 0.039,0.506 ± 0.070,0.996 ± 0.001,0.507 ± 0.025
+"PCA reconstruction error, fit on test populations",0.691 ± 0.032,0.518 ± 0.049,0.865 ± 0.017,0.300 ± 0.044

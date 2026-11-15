@@ -1,0 +1,13 @@
+method,"synthetic, all columns","synthetic, half","ADBench, all","ADBench, half"
+Isolation Forest,0.692 ± 0.021,0.671 ± 0.012,0.877,0.845
+Local Outlier Factor,0.691 ± 0.020,0.667 ± 0.012,0.661,0.655
+kNN distance,0.694 ± 0.021,0.666 ± 0.013,0.828,0.802
+PCA reconstruction error,0.583 ± 0.039,0.596 ± 0.022,0.798,0.688
+"Masked MLP, standardized error",0.692 ± 0.027,0.671 ± 0.015,0.688,0.736
+"Masked MLP, squared error",0.695 ± 0.021,0.671 ± 0.014,0.867,0.831
+Context model without context (k=0),0.691 ± 0.022,0.670 ± 0.014,0.700,0.717
+Context model (k=32),0.973 ± 0.011,0.925 ± 0.011,0.718,0.730
+"Context model, squared error (k=32)",0.975 ± 0.009,0.926 ± 0.010,0.885,0.840
+kNN to the context rows (k=32),0.978 ± 0.011,0.942 ± 0.014,0.892,0.856
+Mahalanobis to the context rows (k=32),0.981 ± 0.011,0.935 ± 0.016,0.864,0.822
+Oracle density of the true population,1.000 ± 0.000,0.980 ± 0.005,n/a,n/a

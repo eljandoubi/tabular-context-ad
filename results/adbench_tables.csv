@@ -1,0 +1,9 @@
+table,rows,columns,anomalies
+breastw,683,9,35.0 %
+cardio,"1,831",21,9.6 %
+pima,768,8,34.9 %
+satellite,"6,435",36,31.6 %
+shuttle,"49,097",9,7.2 %
+thyroid,"3,772",6,2.5 %
+vowels,"1,456",12,3.4 %
+wbc,223,9,4.5 %
