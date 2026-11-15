@@ -13,7 +13,13 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from contextad.adbench import TABLES, load_table, split_table, standardize
+from contextad.adbench import (
+    TABLES,
+    load_table,
+    split_table,
+    standardize,
+    validation_split,
+)
 from contextad.detectors import fit_baselines
 from contextad.evaluate import (
     context_net_scores,
@@ -60,8 +66,9 @@ def main():
     rng = np.random.default_rng(args.seed)
     order = rng.permutation(len(z_train))
     n_val = max(16, int(args.val_fraction * len(z_train)))
-    bank = torch.tensor(z_train[order[n_val:]], dtype=torch.float32)[None]
-    val = torch.tensor(z_train[order[:n_val]], dtype=torch.float32)
+    bank_rows, val_rows = validation_split(x_train, order, n_val)
+    bank = torch.tensor(z_train[bank_rows], dtype=torch.float32)[None]
+    val = torch.tensor(z_train[val_rows], dtype=torch.float32)
     t0 = time.time()
     fit_args = {"steps": args.steps, "seed": args.seed, "trim": args.trim, "val": val}
     mlp_fit = train_masked_mlp(bank, **fit_args)
