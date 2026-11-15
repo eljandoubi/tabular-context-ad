@@ -1,0 +1,9 @@
+table,rows,rows in a repeated vector,plain split: copy in the training rows,plain split: copy in a scored context,grouped split: any copy
+breastw,683,280,390 of 665 / 6 of 360,168 of 665 / 0 of 360,0
+cardio,"1,831",16,"16 of 2,485 / 2 of 265","0 of 2,485 / 0 of 265",0
+pima,768,0,0 of 750 / 0 of 405,0 of 750 / 0 of 405,0
+satellite,"6,435",0,"0 of 6,600 / 0 of 3,055","0 of 6,600 / 0 of 3,055",0
+shuttle,"49,097",0,"0 of 68,385 / 0 of 5,265","0 of 68,385 / 0 of 5,265",0
+thyroid,"3,772",163,"211 of 5,520 / 0 of 140","4 of 5,520 / 0 of 140",0
+vowels,"1,456",8,"0 of 2,110 / 10 of 75","0 of 2,110 / 1 of 75",0
+wbc,223,0,0 of 320 / 0 of 15,0 of 320 / 0 of 15,0

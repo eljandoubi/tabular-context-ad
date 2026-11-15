@@ -1,3 +1,3 @@
 run,context model s,masked MLP s,"parameters (context, MLP)"
 "synthetic, one seed",147,99,"146,452, 142,100"
-"ADBench, both models, one table",121,,
+"ADBench, both models, one table",92,,

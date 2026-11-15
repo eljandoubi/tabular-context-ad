@@ -1,0 +1,9 @@
+paired difference in AUROC,mean,95 % interval,tables above 0,splits above 0
+standardized error: context k=32 minus k=0,+0.015,"[-0.001, +0.040]",7 of 8,31 of 40
+standardized error: context k=32 minus masked MLP,+0.027,"[-0.017, +0.083]",4 of 8,17 of 40
+standardized error: context k=32 minus kNN to context,-0.182,"[-0.287, -0.088]",1 of 8,6 of 40
+standardized error: context k=32 minus Isolation Forest,-0.169,"[-0.288, -0.063]",2 of 8,7 of 40
+squared error: context k=32 minus masked MLP,+0.018,"[-0.001, +0.042]",6 of 8,30 of 40
+squared error: context k=32 minus kNN to context,-0.008,"[-0.031, +0.017]",3 of 8,16 of 40
+squared error: context k=32 minus Isolation Forest,+0.006,"[-0.028, +0.053]",3 of 8,19 of 40
+context k=32: squared minus standardized error,+0.174,"[+0.086, +0.278]",7 of 8,36 of 40
