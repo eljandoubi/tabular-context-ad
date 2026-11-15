@@ -143,7 +143,7 @@ def test_masked_mlp_scores_flag_a_row_that_breaks_the_learned_relation():
     gen = torch.Generator().manual_seed(4)
     base = torch.randn(1, 600, 1, generator=gen)
     bank = torch.cat([base, 2 * base, -base + 0.05 * torch.randn_like(base)], dim=2)
-    mlp, _ = train_masked_mlp(bank, steps=400, rows=256, seed=0)
+    mlp = train_masked_mlp(bank, steps=400, rows=256, seed=0).model
     typical = torch.tensor([[1.0, 2.0, -1.0]])
     broken = torch.tensor([[1.0, -2.0, -1.0]])
     cols = np.arange(3)

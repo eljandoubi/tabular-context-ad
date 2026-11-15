@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import copy
 import math
+from collections.abc import Callable
+from dataclasses import dataclass, field
 
 import torch
 
@@ -11,6 +14,19 @@ from .models import ContextNet, MaskedMLP, gaussian_nll
 
 CONTEXT_SIZES = (0, 4, 8, 16, 32, 64)
 CONTEXT_PROBS = (0.1, 0.1, 0.15, 0.15, 0.3, 0.2)
+VALIDATION_SEED = 12345
+
+Bank = torch.Tensor | Callable[[int], torch.Tensor]
+
+
+@dataclass
+class Fit:
+    """A trained model with its training loss and, if used, the validation curve."""
+
+    model: torch.nn.Module
+    losses: list[float]
+    val_losses: list[tuple[int, float]] = field(default_factory=list)
+    best_step: int | None = None
 
 
 def sample_episodes(bank, k: int, episodes: int, targets: int, gen: torch.Generator):
@@ -45,8 +61,31 @@ def _update(model, opt, sched, loss):
     sched.step()
 
 
+@torch.no_grad()
+def _validation_loss_mlp(model, val, repeats: int = 4):
+    gen = torch.Generator().manual_seed(VALIDATION_SEED)
+    x = val.repeat(repeats, 1)
+    avail = schema_mask(len(x), val.shape[1], gen)
+    hidden = hide_mask(avail, gen)
+    mean, logvar = model(x, avail & ~hidden)
+    return gaussian_nll(mean, logvar, x, hidden).item()
+
+
+@torch.no_grad()
+def _validation_loss_context(model, pool, val, k: int = 32, repeats: int = 4):
+    gen = torch.Generator().manual_seed(VALIDATION_SEED)
+    k = min(k, len(pool))
+    picks = torch.rand(repeats, len(pool), generator=gen).argsort(dim=1)[:, :k]
+    x = val.unsqueeze(0).expand(repeats, -1, -1)
+    avail = schema_mask(repeats, val.shape[1], gen)
+    avail_rows = avail[:, None, :].expand(-1, len(val), -1)
+    hidden = hide_mask(avail_rows, gen)
+    mean, logvar = model(x, avail_rows & ~hidden, pool[picks], avail)
+    return gaussian_nll(mean, logvar, x, hidden).item()
+
+
 def train_context_net(
-    bank: torch.Tensor,
+    bank: Bank,
     steps: int = 3000,
     episodes: int = 32,
     targets: int = 16,
@@ -54,50 +93,85 @@ def train_context_net(
     sizes: tuple[int, ...] = CONTEXT_SIZES,
     probs: tuple[float, ...] = CONTEXT_PROBS,
     seed: int = 0,
-):
-    """Train a ContextNet on episodes drawn from bank; returns (model, losses)."""
-    dim = bank.shape[2]
+    refresh_every: int = 250,
+    val: torch.Tensor | None = None,
+    val_every: int = 50,
+) -> Fit:
+    """Train a ContextNet on episodes drawn from a bank (populations, rows, dim).
+
+    bank may be a function of the refresh round that returns a new tensor every
+    refresh_every steps. With val (rows, dim) held out of a one-population bank,
+    the weights with the lowest validation loss (context of 32 rows) are kept.
+    """
+    current = bank(0) if callable(bank) else bank
+    dim = current.shape[2]
     torch.manual_seed(seed)
     gen = torch.Generator().manual_seed(seed)
     model = ContextNet(dim)
     opt, sched = _optimizer(model, lr, steps)
     weights = torch.tensor(probs, dtype=torch.float)
-    losses = []
-    for _ in range(steps):
+    fit = Fit(model, [])
+    best, state = math.inf, None
+    for step in range(steps):
+        if callable(bank) and step and step % refresh_every == 0:
+            current = bank(step // refresh_every)
         k = sizes[int(torch.multinomial(weights, 1, generator=gen))]
-        k = min(k, bank.shape[1] - targets)
-        context, x = sample_episodes(bank, k, episodes, targets, gen)
+        k = min(k, current.shape[1] - targets)
+        context, x = sample_episodes(current, k, episodes, targets, gen)
         avail = schema_mask(episodes, dim, gen)
         avail_rows = avail[:, None, :].expand(-1, targets, -1)
         hidden = hide_mask(avail_rows, gen)
         mean, logvar = model(x, avail_rows & ~hidden, context, avail)
         loss = gaussian_nll(mean, logvar, x, hidden)
         _update(model, opt, sched, loss)
-        losses.append(loss.item())
-    return model, losses
+        fit.losses.append(loss.item())
+        if val is not None and (step + 1) % val_every == 0:
+            score = _validation_loss_context(model, current[0], val)
+            fit.val_losses.append((step + 1, score))
+            if score < best:
+                best, fit.best_step = score, step + 1
+                state = copy.deepcopy(model.state_dict())
+    if state is not None:
+        model.load_state_dict(state)
+    return fit
 
 
 def train_masked_mlp(
-    bank: torch.Tensor,
+    bank: Bank,
     steps: int = 3000,
     rows: int = 512,
     lr: float = 2e-3,
     seed: int = 0,
-):
-    """Train a MaskedMLP on rows pooled from bank; returns (model, losses)."""
-    dim = bank.shape[2]
-    flat = bank.reshape(-1, dim)
+    refresh_every: int = 250,
+    val: torch.Tensor | None = None,
+    val_every: int = 50,
+) -> Fit:
+    """Train a MaskedMLP on rows pooled from bank; bank and val as for ContextNet."""
+    current = bank(0) if callable(bank) else bank
+    dim = current.shape[2]
+    flat = current.reshape(-1, dim)
     torch.manual_seed(seed)
     gen = torch.Generator().manual_seed(seed)
     model = MaskedMLP(dim)
     opt, sched = _optimizer(model, lr, steps)
-    losses = []
-    for _ in range(steps):
+    fit = Fit(model, [])
+    best, state = math.inf, None
+    for step in range(steps):
+        if callable(bank) and step and step % refresh_every == 0:
+            flat = bank(step // refresh_every).reshape(-1, dim)
         x = flat[torch.randint(len(flat), (rows,), generator=gen)]
         avail = schema_mask(rows, dim, gen)
         hidden = hide_mask(avail, gen)
         mean, logvar = model(x, avail & ~hidden)
         loss = gaussian_nll(mean, logvar, x, hidden)
         _update(model, opt, sched, loss)
-        losses.append(loss.item())
-    return model, losses
+        fit.losses.append(loss.item())
+        if val is not None and (step + 1) % val_every == 0:
+            score = _validation_loss_mlp(model, val)
+            fit.val_losses.append((step + 1, score))
+            if score < best:
+                best, fit.best_step = score, step + 1
+                state = copy.deepcopy(model.state_dict())
+    if state is not None:
+        model.load_state_dict(state)
+    return fit
