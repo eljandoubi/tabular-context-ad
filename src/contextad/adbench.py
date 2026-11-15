@@ -51,6 +51,7 @@ def split_table(x, y, seed: int, test_size: float = 0.3, whole_groups: bool = Tr
         in_test[test] = True
         moved = follow_first_row(in_test, x)
         if (moved != in_test).any():
+            # Shuffle both sides so that blocks of consecutive test rows stay mixed.
             order = np.random.default_rng([seed, 1]).permutation(len(x))
             train, test = order[~moved[order]], order[moved[order]]
     return x[train], x[test], y[train], y[test]
