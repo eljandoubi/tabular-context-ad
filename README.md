@@ -6,17 +6,17 @@ The study runs on a laptop CPU. It has a generator of synthetic populations with
 
 ## Findings
 
-- On synthetic populations, detectors that score rows in isolation reach an AUROC of 0.692 (Isolation Forest) and sit at or below chance on contextual anomalies (0.457 to 0.485). The context model with 32 context rows reaches 0.973 ± 0.011, and 0.926 ± 0.020 with 4 rows.
+- On synthetic populations (Gaussian mixtures whose anomalies are kept by a density rule, which suits density-based references), detectors that score rows in isolation reach an AUROC of 0.692 (Isolation Forest) and sit at or below chance on contextual anomalies (0.457 to 0.485). The context model with 32 context rows reaches 0.973 ± 0.011, and 0.926 ± 0.020 with 4 rows.
 - The learned model is not what brings the gain. The Mahalanobis distance to the 32 context rows reaches 0.981 ± 0.011 and the kNN distance to them 0.978 ± 0.011. The context model is 0.008 ± 0.006 below the Mahalanobis distance (paired over seeds).
 - Anomalies inside the context hurt the learned model more than the two references. With 20 % anomalies in the context it falls to 0.935 ± 0.018, against 0.971 ± 0.014 for kNN and 0.959 ± 0.019 for Mahalanobis.
 - On the eight ADBench tables, which have one population each, the context does not help: 0.700 without context rows and 0.718 with 32, scored by the standardized prediction error. That score is far below Isolation Forest (0.877). The same networks scored with the plain squared error reach 0.867 (masked MLP) and 0.885 (context model).
-- With a random half of the columns the neural models need no retraining. On synthetic data the context model goes from 0.973 ± 0.011 to 0.925 ± 0.011, the kNN distance to the context from 0.978 ± 0.011 to 0.942 ± 0.014, and the oracle density from 1.000 to 0.980 ± 0.005. The detectors that score rows in isolation go from about 0.69 to about 0.67.
+- With a random half of the columns the neural models need no retraining. On synthetic data the context model goes from 0.973 ± 0.011 to 0.925 ± 0.011, the kNN distance to the context from 0.978 ± 0.011 to 0.942 ± 0.014, and the label-informed oracle density from 0.9999 to 0.980 ± 0.005. The detectors that score rows in isolation go from about 0.69 to about 0.67.
 
 ## Results
 
 ### Synthetic populations
 
-Eight held-out populations per seed, five seeds. Each cell is the mean ± standard deviation over seeds of the AUROC averaged over the eight populations (last column: AUPRC). "Contextual" and "ordinary" keep only that anomaly type next to all normal rows. The oracle is the true density of the row's population, which also defines the labels, so its 1.000 is a ceiling and not a competitor.
+Eight held-out populations per seed, five seeds. Each cell is the mean ± standard deviation over seeds of the AUROC averaged over the eight populations (last column: AUPRC). "Contextual" and "ordinary" keep only that anomaly type next to all normal rows. The oracle is the true density of the row's population, which also defines the labels. It is a label-informed, near-perfect reference, not a guaranteed ceiling and not a competitor: its AUROC is 0.999877 to 0.999939 over the five seeds, which the table rounds to 1.000.
 
 | method | AUROC | AUROC contextual | AUROC ordinary | AUPRC |
 |---|---|---|---|---|
@@ -207,7 +207,7 @@ A synthetic seed takes about five minutes and an ADBench split about two minutes
 
 ## Limits
 
-- The synthetic populations are Gaussian mixtures with a known low-rank structure, and the two context references fit that structure. The gap between the learned model and the references says nothing about real populations.
+- The synthetic populations are Gaussian mixtures with a known low-rank structure, and the two context references fit that structure. The gap between the learned model and the references says nothing about real populations. The oracle reaches 0.9999 because it uses the density that also defines the anomalies: a near-perfect reference in this generator, not a bound for other data.
 - The eight tables are small, have one population each, and are run with one fixed setting and five random splits. The trimmed share of 10 % is below the anomaly share of breastw, pima and satellite (31 to 35 %). These results are no claim about large benchmarks.
 - The training rows are unlabeled but not clean, and the context model needs the trimmed loss to cope (training rows and loss table). The standardized-error score is much weaker than the squared error on the tables (0.718 against 0.885); I did not test why.
 - The context pools carry anomalies at each population's own rate, one context is drawn per block of 50 rows, and contamination was tested on synthetic data only. No latent-prediction variant was built.
