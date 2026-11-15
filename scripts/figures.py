@@ -13,7 +13,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-from report import (  # noqa: E402
+from contextad.report import (  # noqa: E402
     CONTEXT_METHODS,
     RATES,
     SIZES,
