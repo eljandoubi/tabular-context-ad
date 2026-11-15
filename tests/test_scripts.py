@@ -1,3 +1,4 @@
+import csv
 import json
 import subprocess
 import sys
@@ -72,3 +73,32 @@ def test_adbench_script_runs_end_to_end_on_a_tiny_table(tmp_path):
         "context_net_mse",
     }
     assert result["train"]["net_best_step"] == 50
+
+
+def test_duplicate_count_finds_copies_in_the_plain_split_only(tmp_path):
+    rng = np.random.default_rng(0)
+    counts = rng.integers(1, 5, size=150)
+    x = np.repeat(rng.normal(size=(150, 4)), counts, axis=0)
+    y = np.repeat((np.arange(150) < 15).astype(int), counts)
+    np.savez(tmp_path / "6_cardio.npz", X=x, y=y)
+    path = run(
+        "count_duplicates.py",
+        tables="cardio",
+        seeds=2,
+        root=tmp_path,
+        out=tmp_path / "out",
+    )
+    rows = list(csv.DictReader(path.open()))
+    assert len(rows) == 2 * 2 * 2
+    fields = ("copy_in_train", "copy_in_context", "copy_in_any_context")
+    for split in ("plain", "grouped"):
+        part = [r for r in rows if r["split"] == split]
+        assert sum(int(r["test_rows"]) for r in part) > 100
+        found = [sum(int(r[f]) for r in part) for f in fields]
+        assert (found[0] > 0) == (split == "plain")
+        assert (found[2] > 0) == (split == "plain")
+        assert found[1] <= found[2]
+        clipped = [sum(int(r["clipped_" + f]) for r in part) for f in fields]
+        assert clipped == found
+    table = list(csv.DictReader((path.parent / "duplicate_rows.csv").open()))
+    assert table[0]["rows"] == str(len(x)) and table[0]["distinct_rows"] == "150"

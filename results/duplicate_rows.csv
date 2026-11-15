@@ -1,0 +1,9 @@
+table,rows,distinct_rows,rows_in_repeats,largest_group
+breastw,683,449,280,27
+cardio,1831,1822,16,4
+pima,768,768,0,1
+satellite,6435,6435,0,1
+shuttle,49097,49097,0,1
+thyroid,3772,3656,163,10
+vowels,1456,1452,8,2
+wbc,223,223,0,1
