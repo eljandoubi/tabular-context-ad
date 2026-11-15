@@ -75,6 +75,29 @@ def test_adbench_script_runs_end_to_end_on_a_tiny_table(tmp_path):
     assert result["train"]["net_best_step"] == 50
 
 
+def test_adbench_script_runs_on_a_table_with_repeated_rows(tmp_path):
+    rng = np.random.default_rng(1)
+    x = rng.normal(size=(240, 5))
+    y = np.zeros(240, dtype=int)
+    y[:20] = 1
+    x[:20] += 4.0
+    x[120:200] = x[40:120]
+    y[120:200] = y[40:120]
+    np.savez(tmp_path / "6_cardio.npz", X=x, y=y)
+    path = run(
+        "run_adbench.py",
+        dataset="cardio",
+        seed=0,
+        steps=60,
+        schema_repeats=1,
+        root=tmp_path,
+        out=tmp_path / "out",
+    )
+    result = json.loads(path.read_text())
+    assert result["shape"]["train"][0] + result["shape"]["test"][0] == 240
+    assert result["main"]["iforest"]["auroc"] > 0.9
+
+
 def test_duplicate_count_finds_copies_in_the_plain_split_only(tmp_path):
     rng = np.random.default_rng(0)
     counts = rng.integers(1, 5, size=150)

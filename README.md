@@ -196,7 +196,7 @@ scripts/
   run_adbench.py        one table and one split
   count_duplicates.py   test rows with an exact copy in the training rows or a context
   report.py, figures.py tables and figures from results/
-tests/                  118 tests, about a minute on a laptop CPU
+tests/                  119 tests, about a minute on a laptop CPU
 results/                per-seed JSON, CSV tables, tables.md, two figures
 ```
 
