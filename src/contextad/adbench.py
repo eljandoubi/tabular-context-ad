@@ -72,8 +72,9 @@ def validation_split(
 
     A set of identical rows that the cut separated goes to the side of its first row
     in x. If that leaves fewer than minimum validation rows, whole sets of identical
-    rows are added in the order of the permutation until there are minimum. Without
-    repeated rows and with n_val >= minimum this is order[n_val:] and order[:n_val].
+    rows are added, following the permutation, until the validation rows reach
+    minimum. Without repeated rows and with n_val >= minimum this is order[n_val:]
+    and order[:n_val].
     """
     in_val = np.zeros(len(x), dtype=bool)
     in_val[order[:n_val]] = True
