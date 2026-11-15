@@ -114,6 +114,19 @@ def test_parameter_counts_are_small():
     assert 100_000 < count_parameters(MaskedMLP(10)) < 300_000
 
 
+def test_gaussian_nll_trim_leaves_out_the_worst_rows():
+    mean = torch.zeros(1, 4, 1)
+    logvar = torch.zeros(1, 4, 1)
+    x = torch.tensor([[[1.0], [2.0], [3.0], [10.0]]])
+    hidden = torch.ones(1, 4, 1, dtype=torch.bool)
+    assert torch.isclose(
+        gaussian_nll(mean, logvar, x, hidden, trim=0.25), torch.tensor(7 / 3)
+    )
+    plain = gaussian_nll(mean, logvar, x, hidden)
+    assert torch.isclose(plain, torch.tensor((0.5 + 2 + 4.5 + 50) / 4))
+    assert gaussian_nll(mean, logvar, x, hidden, trim=0.0) == plain
+
+
 def test_gaussian_nll_value_and_mask():
     mean = torch.zeros(1, 2, 3)
     logvar = torch.zeros(1, 2, 3)

@@ -94,14 +94,16 @@ def train_context_net(
     probs: tuple[float, ...] = CONTEXT_PROBS,
     seed: int = 0,
     refresh_every: int = 250,
+    trim: float = 0.0,
     val: torch.Tensor | None = None,
     val_every: int = 50,
 ) -> Fit:
     """Train a ContextNet on episodes drawn from a bank (populations, rows, dim).
 
     bank may be a function of the refresh round that returns a new tensor every
-    refresh_every steps. With val (rows, dim) held out of a one-population bank,
-    the weights with the lowest validation loss (context of 32 rows) are kept.
+    refresh_every steps. trim is the share of target rows left out of each loss.
+    With val (rows, dim) held out of a one-population bank, the weights with the
+    lowest validation loss (context of 32 rows) are kept.
     """
     current = bank(0) if callable(bank) else bank
     dim = current.shape[2]
@@ -122,7 +124,7 @@ def train_context_net(
         avail_rows = avail[:, None, :].expand(-1, targets, -1)
         hidden = hide_mask(avail_rows, gen)
         mean, logvar = model(x, avail_rows & ~hidden, context, avail)
-        loss = gaussian_nll(mean, logvar, x, hidden)
+        loss = gaussian_nll(mean, logvar, x, hidden, trim)
         _update(model, opt, sched, loss)
         fit.losses.append(loss.item())
         if val is not None and (step + 1) % val_every == 0:
@@ -143,10 +145,11 @@ def train_masked_mlp(
     lr: float = 2e-3,
     seed: int = 0,
     refresh_every: int = 250,
+    trim: float = 0.0,
     val: torch.Tensor | None = None,
     val_every: int = 50,
 ) -> Fit:
-    """Train a MaskedMLP on rows pooled from bank; bank and val as for ContextNet."""
+    """Train a MaskedMLP on rows pooled from bank; arguments as for ContextNet."""
     current = bank(0) if callable(bank) else bank
     dim = current.shape[2]
     flat = current.reshape(-1, dim)
@@ -163,7 +166,7 @@ def train_masked_mlp(
         avail = schema_mask(rows, dim, gen)
         hidden = hide_mask(avail, gen)
         mean, logvar = model(x, avail & ~hidden)
-        loss = gaussian_nll(mean, logvar, x, hidden)
+        loss = gaussian_nll(mean, logvar, x, hidden, trim)
         _update(model, opt, sched, loss)
         fit.losses.append(loss.item())
         if val is not None and (step + 1) % val_every == 0:

@@ -12,10 +12,18 @@ def _embed(width_in: int, dim: int) -> nn.Sequential:
     return nn.Sequential(nn.Linear(width_in, dim), nn.GELU(), nn.Linear(dim, dim))
 
 
-def gaussian_nll(mean, logvar, x, hidden):
-    """Negative log likelihood (up to a constant) averaged over the hidden entries."""
+def gaussian_nll(mean, logvar, x, hidden, trim: float = 0.0):
+    """Negative log likelihood (up to a constant) over the hidden entries.
+
+    With trim > 0 the rows with the largest loss are left out of the average, so a
+    few anomalies in the training rows do not teach the model to expect them.
+    """
     nll = 0.5 * (logvar + (x - mean) ** 2 * torch.exp(-logvar))
-    return (nll * hidden).sum() / hidden.sum()
+    if trim <= 0:
+        return (nll * hidden).sum() / hidden.sum()
+    per_row = ((nll * hidden).sum(dim=-1) / hidden.sum(dim=-1)).reshape(-1)
+    keep = per_row.numel() - int(trim * per_row.numel())
+    return per_row.topk(keep, largest=False).values.mean()
 
 
 def count_parameters(model: nn.Module) -> int:
