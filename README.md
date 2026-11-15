@@ -117,7 +117,7 @@ Four tables repeat feature vectors (third column below). A plain stratified spli
 | vowels | 1,456 | 8 | 0 of 2,110 / 10 of 75 | 0 of 2,110 / 1 of 75 | 0 |
 | wbc | 223 | 0 | 0 of 320 / 0 of 15 | 0 of 320 / 0 of 15 | 0 |
 
-Clipping the standardized columns at 8 standard deviations makes 17 of the 73,650 shuttle test rows equal to a training row, none of them in a scored context (the `clipped_` columns of `results/duplicates.csv`).
+The counts compare the raw feature rows, which is also what the split groups on. The models read the standardized columns, and clipping them at 8 standard deviations makes 17 of the 73,650 shuttle test rows equal to a training row, none of them in a scored context (the `clipped_` columns of `results/duplicates.csv`).
 
 AUROC, mean ± standard deviation over the five splits; the last column is the mean over tables (AUPRC is in `results/adbench_auprc.csv`).
 
