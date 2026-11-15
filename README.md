@@ -103,7 +103,7 @@ Five stratified 70/30 splits per table, in which rows with the same value in eve
 | vowels | 1,456 | 12 | 3.4 % |
 | wbc | 223 | 9 | 4.5 % |
 
-Four tables repeat feature vectors (third column below). A plain stratified split cuts such sets of rows across the split, so test rows get exact copies among the training rows and in the scored contexts. The table counts them for the plain split of the same five seeds (normal / anomalous test rows, summed over the five splits; `scripts/count_duplicates.py` writes `results/duplicates.csv`). The reported runs use the split that keeps identical rows together, where every count is zero.
+Four tables repeat feature vectors (third column below). A plain stratified split cuts such sets of rows across the split, so test rows get exact copies among the training rows and in the scored contexts. The table counts them for the plain split of the same five seeds (normal / anomalous test rows, summed over the five splits; `scripts/count_duplicates.py` writes `results/duplicates.csv`). The reported runs use the split that keeps identical rows together, where every count is zero. Identical rows carry the same label in every table (`mixed_label_vectors` is 0 in `results/duplicate_rows.csv`).
 
 | table | rows | rows in a repeated vector | plain split: copy in the training rows | plain split: copy in a scored context | grouped split: any copy |
 |---|---|---|---|---|---|
@@ -170,7 +170,7 @@ At test time a random half of the columns is kept (5 of 10 on synthetic data, ab
 
 ### Cost
 
-Two threads per job on a shared 10-core laptop (load average between 4 and 103 during the runs, so timings are rough). The ADBench row averages 40 runs: the four tables with repeated rows were re-run at a lower load (45 s on average) than the other four (139 s).
+Two threads per job on a shared 10-core laptop (load average between 4 and 103 during the runs, so timings are rough). The ADBench row averages 40 runs, and the four tables with repeated rows were re-run later at a lower load than the other four (`load_end` and `seconds` in each JSON file).
 
 | run | context model s | masked MLP s | parameters (context, MLP) |
 |---|---|---|---|
