@@ -63,6 +63,17 @@ class Population:
         self.unlikely = float(np.quantile(logp, UNLIKELY_QUANTILE))
         self.typical = float(np.quantile(logp, TYPICAL_QUANTILE))
 
+    def marginal(self, columns) -> Population:
+        """The same mixture seen through a subset of the columns."""
+        columns = np.asarray(columns)
+        return Population(
+            self.weights,
+            self.means[:, columns],
+            self.factors[:, columns],
+            self.noise[:, columns],
+            rate=self.rate,
+        )
+
 
 def make_population(
     rng: np.random.Generator,

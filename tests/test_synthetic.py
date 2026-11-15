@@ -59,6 +59,18 @@ def test_log_density_all_matches_each_population(world):
     assert np.allclose(world.log_density_all(x), stacked)
 
 
+def test_marginal_is_the_mixture_seen_through_some_columns():
+    rng = np.random.default_rng(16)
+    pop = make_population(rng, max_components=1)
+    cols = [1, 4, 7]
+    cov = pop.factors[0] @ pop.factors[0].T + np.diag(pop.noise[0])
+    x = pop.sample(40, rng)
+    expected = multivariate_normal(pop.means[0][cols], cov[np.ix_(cols, cols)]).logpdf(
+        x[:, cols]
+    )
+    assert np.allclose(pop.marginal(cols).log_density(x[:, cols]), expected)
+
+
 def test_sample_moments_match_the_parameters():
     rng = np.random.default_rng(5)
     pop = make_population(rng, max_components=1)

@@ -86,3 +86,13 @@ def test_oracle_scores_rank_contextual_anomalies_above_normal_rows():
     score = oracle_scores(world, 0, x)
     assert np.allclose(score, -world.populations[0].log_density(x))
     assert auroc(kind[keep] > 0, score[keep]) > 0.95
+
+
+def test_oracle_scores_on_a_subset_of_the_columns():
+    world = make_world(np.random.default_rng(8), 3)
+    x, _ = world.sample_rows(1, 300, np.random.default_rng(9))
+    cols = np.array([0, 3, 4, 8])
+    marginal = world.populations[1].marginal(cols)
+    assert np.allclose(
+        oracle_scores(world, 1, x, cols), -marginal.log_density(x[:, cols])
+    )

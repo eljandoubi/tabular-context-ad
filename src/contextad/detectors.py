@@ -48,6 +48,10 @@ def mahalanobis_to_context(context: np.ndarray, rows: np.ndarray):
     return out
 
 
-def oracle_scores(world, index: int, rows: np.ndarray):
-    """Negative log density of rows under the true population (knows the population)."""
-    return -world.populations[index].log_density(rows)
+def oracle_scores(world, index: int, rows: np.ndarray, columns=None):
+    """Negative log density under the true population (knows the population)."""
+    pop = world.populations[index]
+    if columns is not None:
+        pop = pop.marginal(columns)
+        rows = rows[:, columns]
+    return -pop.log_density(rows)
