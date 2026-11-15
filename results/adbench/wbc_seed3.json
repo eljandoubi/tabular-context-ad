@@ -1,0 +1,328 @@
+{
+ "config": {
+  "dataset": "wbc",
+  "seed": 3,
+  "steps": 2000,
+  "trim": 0.1,
+  "val_fraction": 0.1,
+  "block": 50,
+  "k": 32,
+  "schema_repeats": 3,
+  "threads": 2,
+  "root": "data/adbench",
+  "out": "results/adbench"
+ },
+ "shape": {
+  "train": [
+   156,
+   9
+  ],
+  "test": [
+   67,
+   9
+  ]
+ },
+ "anomaly_rate": {
+  "train": 0.04487179487179487,
+  "test": 0.04477611940298507
+ },
+ "train": {
+  "seconds": 92.52003884315491,
+  "load_end": 10.912109375,
+  "mlp_best_step": 1150,
+  "net_best_step": 1700,
+  "parameters": {
+   "mlp": 141074,
+   "context_net": 146066
+  }
+ },
+ "main": {
+  "iforest": {
+   "auroc": 1.0,
+   "auprc": 1.0
+  },
+  "lof": {
+   "auroc": 0.9479166666666666,
+   "auprc": 0.3595238095238095
+  },
+  "knn": {
+   "auroc": 0.9947916666666666,
+   "auprc": 0.9166666666666666
+  },
+  "pca": {
+   "auroc": 0.9114583333333334,
+   "auprc": 0.2777777777777778
+  },
+  "masked_mlp": {
+   "auroc": 0.8229166666666666,
+   "auprc": 0.2544802867383512
+  },
+  "masked_mlp_mse": {
+   "auroc": 0.96875,
+   "auprc": 0.7777777777777777
+  },
+  "context_net_k0": {
+   "auroc": 0.75,
+   "auprc": 0.4875
+  },
+  "context_net": {
+   "auroc": 0.7864583333333334,
+   "auprc": 0.5238095238095238
+  },
+  "context_net_mse": {
+   "auroc": 0.96875,
+   "auprc": 0.7777777777777777
+  },
+  "knn_context": {
+   "auroc": 0.9895833333333334,
+   "auprc": 0.8666666666666667
+  },
+  "mahalanobis_context": {
+   "auroc": 0.984375,
+   "auprc": 0.8333333333333333
+  }
+ },
+ "context_size": {
+  "0": {
+   "context_net": {
+    "auroc": 0.75,
+    "auprc": 0.4875
+   }
+  },
+  "4": {
+   "context_net": {
+    "auroc": 0.7864583333333334,
+    "auprc": 0.4910569105691057
+   },
+   "knn_context": {
+    "auroc": 0.9947916666666666,
+    "auprc": 0.9166666666666666
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9739583333333334,
+    "auprc": 0.6984126984126985
+   }
+  },
+  "8": {
+   "context_net": {
+    "auroc": 0.7760416666666666,
+    "auprc": 0.489922480620155
+   },
+   "knn_context": {
+    "auroc": 1.0,
+    "auprc": 1.0
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9635416666666666,
+    "auprc": 0.6666666666666666
+   }
+  },
+  "16": {
+   "context_net": {
+    "auroc": 0.7760416666666666,
+    "auprc": 0.489922480620155
+   },
+   "knn_context": {
+    "auroc": 1.0,
+    "auprc": 1.0
+   },
+   "mahalanobis_context": {
+    "auroc": 1.0,
+    "auprc": 1.0
+   }
+  },
+  "32": {
+   "context_net": {
+    "auroc": 0.7760416666666666,
+    "auprc": 0.489922480620155
+   },
+   "knn_context": {
+    "auroc": 1.0,
+    "auprc": 1.0
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9895833333333334,
+    "auprc": 0.8666666666666667
+   }
+  },
+  "64": {
+   "context_net": {
+    "auroc": 0.78125,
+    "auprc": 0.4904761904761905
+   },
+   "knn_context": {
+    "auroc": 0.9947916666666666,
+    "auprc": 0.9166666666666666
+   },
+   "mahalanobis_context": {
+    "auroc": 0.9791666666666666,
+    "auprc": 0.7222222222222223
+   }
+  }
+ },
+ "schema": [
+  {
+   "columns": [
+    3,
+    4,
+    5,
+    7
+   ],
+   "methods": {
+    "iforest": {
+     "auroc": 0.9583333333333334,
+     "auprc": 0.611111111111111
+    },
+    "lof": {
+     "auroc": 0.5885416666666666,
+     "auprc": 0.06888810114616567
+    },
+    "knn": {
+     "auroc": 0.9479166666666666,
+     "auprc": 0.3888888888888889
+    },
+    "pca": {
+     "auroc": 0.7239583333333334,
+     "auprc": 0.12817460317460316
+    },
+    "masked_mlp": {
+     "auroc": 0.671875,
+     "auprc": 0.09208982738394503
+    },
+    "masked_mlp_mse": {
+     "auroc": 0.9114583333333334,
+     "auprc": 0.3242424242424242
+    },
+    "context_net_k0": {
+     "auroc": 0.7604166666666666,
+     "auprc": 0.3984126984126984
+    },
+    "context_net": {
+     "auroc": 0.6875,
+     "auprc": 0.38409961685823757
+    },
+    "context_net_mse": {
+     "auroc": 0.9479166666666666,
+     "auprc": 0.4797979797979798
+    },
+    "knn_context": {
+     "auroc": 0.9479166666666666,
+     "auprc": 0.5555555555555556
+    },
+    "mahalanobis_context": {
+     "auroc": 0.9375,
+     "auprc": 0.5353535353535352
+    }
+   }
+  },
+  {
+   "columns": [
+    0,
+    1,
+    6,
+    7
+   ],
+   "methods": {
+    "iforest": {
+     "auroc": 1.0,
+     "auprc": 1.0
+    },
+    "lof": {
+     "auroc": 0.9895833333333334,
+     "auprc": 0.8055555555555556
+    },
+    "knn": {
+     "auroc": 1.0,
+     "auprc": 1.0
+    },
+    "pca": {
+     "auroc": 0.890625,
+     "auprc": 0.4603174603174603
+    },
+    "masked_mlp": {
+     "auroc": 0.8489583333333334,
+     "auprc": 0.16567460317460317
+    },
+    "masked_mlp_mse": {
+     "auroc": 0.9895833333333334,
+     "auprc": 0.8055555555555556
+    },
+    "context_net_k0": {
+     "auroc": 0.8333333333333334,
+     "auprc": 0.15490430622009568
+    },
+    "context_net": {
+     "auroc": 0.8020833333333334,
+     "auprc": 0.13377363377363377
+    },
+    "context_net_mse": {
+     "auroc": 0.9895833333333334,
+     "auprc": 0.8055555555555556
+    },
+    "knn_context": {
+     "auroc": 1.0,
+     "auprc": 1.0
+    },
+    "mahalanobis_context": {
+     "auroc": 1.0,
+     "auprc": 1.0
+    }
+   }
+  },
+  {
+   "columns": [
+    3,
+    5,
+    7,
+    8
+   ],
+   "methods": {
+    "iforest": {
+     "auroc": 0.9895833333333334,
+     "auprc": 0.8666666666666667
+    },
+    "lof": {
+     "auroc": 0.8125,
+     "auprc": 0.13992673992673993
+    },
+    "knn": {
+     "auroc": 0.9791666666666666,
+     "auprc": 0.8095238095238095
+    },
+    "pca": {
+     "auroc": 0.9322916666666666,
+     "auprc": 0.5194805194805194
+    },
+    "masked_mlp": {
+     "auroc": 0.8489583333333334,
+     "auprc": 0.42222222222222217
+    },
+    "masked_mlp_mse": {
+     "auroc": 0.9895833333333334,
+     "auprc": 0.8666666666666667
+    },
+    "context_net_k0": {
+     "auroc": 0.9270833333333334,
+     "auprc": 0.6180555555555556
+    },
+    "context_net": {
+     "auroc": 0.9479166666666666,
+     "auprc": 0.6388888888888888
+    },
+    "context_net_mse": {
+     "auroc": 0.9947916666666666,
+     "auprc": 0.9166666666666666
+    },
+    "knn_context": {
+     "auroc": 0.984375,
+     "auprc": 0.8333333333333333
+    },
+    "mahalanobis_context": {
+     "auroc": 0.984375,
+     "auprc": 0.8333333333333333
+    }
+   }
+  }
+ ],
+ "seconds": 93.83349561691284
+}
