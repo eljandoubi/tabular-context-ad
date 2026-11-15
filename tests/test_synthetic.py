@@ -53,6 +53,12 @@ def test_log_density_matches_scipy():
     assert np.allclose(pop.log_density(x), expected)
 
 
+def test_log_density_all_matches_each_population(world):
+    x, _ = world.sample_rows(0, 600, np.random.default_rng(15), rate=0.3)
+    stacked = np.stack([p.log_density(x) for p in world.populations], axis=1)
+    assert np.allclose(world.log_density_all(x), stacked)
+
+
 def test_sample_moments_match_the_parameters():
     rng = np.random.default_rng(5)
     pop = make_population(rng, max_components=1)

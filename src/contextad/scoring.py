@@ -40,6 +40,16 @@ def n_blocks(n_rows: int, block: int) -> int:
     return -(-n_rows // block)
 
 
+def to_blocks(x, blocks: int, block: int):
+    """Reshape rows (n, d) into (blocks, block, d); the last row pads the end."""
+    pad = blocks * block - len(x)
+    if pad < 0:
+        raise ValueError("not enough blocks for the rows")
+    if pad:
+        x = np.concatenate([x, np.repeat(x[-1:], pad, axis=0)])
+    return x.reshape(blocks, block, x.shape[1])
+
+
 @torch.no_grad()
 def score_masked_mlp(model, x, columns, normalise: bool = True, max_groups: int = 12):
     """Scores of rows x (n, d) using only the given columns."""
@@ -60,15 +70,13 @@ def score_context_net(
     chunk: int = 32,
 ):
     """Scores of rows x (n, d); block b of `block` consecutive rows uses context[b]."""
-    x = torch.as_tensor(x, dtype=torch.float32)
+    x = np.asarray(x, dtype=np.float32)
     context = torch.as_tensor(context, dtype=torch.float32)
     n, dim = x.shape
     blocks = context.shape[0]
     if blocks < n_blocks(n, block):
         raise ValueError("not enough context sets for the rows")
-    pad = blocks * block - n
-    rows = torch.cat([x, x[-1:].expand(pad, dim)]) if pad else x
-    rows = rows.reshape(blocks, block, dim)
+    rows = torch.as_tensor(to_blocks(x, blocks, block))
     avail = column_mask(columns, dim)
     groups = hide_groups(columns, max_groups)
     out = []

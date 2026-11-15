@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-from scipy.linalg import solve_triangular
 from scipy.special import logsumexp
 
 NORMAL, CONTEXTUAL, ORDINARY = 0, 1, 2
+LOG_2PI = float(np.log(2.0 * np.pi))
 UNLIKELY_QUANTILE = 0.02
 TYPICAL_QUANTILE = 0.05
 OUTLIER_SCALE = 3.0
@@ -26,12 +26,15 @@ class Population:
     rate: float = 0.03
     unlikely: float = -np.inf
     typical: float = -np.inf
-    chols: list = field(default_factory=list, repr=False)
+    linv: np.ndarray = field(init=False, repr=False)
+    logdet: np.ndarray = field(init=False, repr=False)
 
     def __post_init__(self):
         covs = np.einsum("cdr,cer->cde", self.factors, self.factors)
         covs = covs + np.einsum("cd,de->cde", self.noise, np.eye(self.means.shape[1]))
-        self.chols = [np.linalg.cholesky(c) for c in covs]
+        chol = np.linalg.cholesky(covs)
+        self.linv = np.linalg.inv(chol)
+        self.logdet = 2.0 * np.log(np.diagonal(chol, axis1=1, axis2=2)).sum(axis=1)
 
     @property
     def dim(self) -> int:
@@ -50,15 +53,9 @@ class Population:
     def log_density(self, x: np.ndarray) -> np.ndarray:
         """Log density of the rows of x under the mixture."""
         x = np.atleast_2d(x)
-        parts = []
-        for w, mean, chol in zip(self.weights, self.means, self.chols, strict=True):
-            z = solve_triangular(chol, (x - mean).T, lower=True)
-            logdet = 2.0 * np.log(np.diag(chol)).sum()
-            quad = (z**2).sum(axis=0)
-            parts.append(
-                np.log(w) - 0.5 * (self.dim * np.log(2 * np.pi) + logdet + quad)
-            )
-        return logsumexp(np.stack(parts, axis=1), axis=1)
+        z = np.einsum("cde,cne->cnd", self.linv, x[None] - self.means[:, None])
+        const = np.log(self.weights) - 0.5 * (self.dim * LOG_2PI + self.logdet)
+        return logsumexp(const[:, None] - 0.5 * (z**2).sum(axis=-1), axis=0)
 
     def calibrate(self, rng: np.random.Generator) -> None:
         """Set the unlikely and typical log density levels from own samples."""
@@ -98,6 +95,16 @@ class World:
     def __init__(self, populations: list[Population]):
         self.populations = populations
         self.unlikely = np.array([p.unlikely for p in populations])
+        self._means = np.concatenate([p.means for p in populations])
+        self._linv = np.concatenate([p.linv for p in populations])
+        self._const = np.concatenate(
+            [
+                np.log(p.weights) - 0.5 * (p.dim * LOG_2PI + p.logdet)
+                for p in populations
+            ]
+        )
+        sizes = [len(p.weights) for p in populations]
+        self._starts = np.cumsum([0, *sizes[:-1]])
 
     def __len__(self) -> int:
         return len(self.populations)
@@ -108,7 +115,14 @@ class World:
 
     def log_density_all(self, x: np.ndarray) -> np.ndarray:
         """Log density of every row under every population, shape (n, P)."""
-        return np.stack([p.log_density(x) for p in self.populations], axis=1)
+        x = np.atleast_2d(x)
+        out = np.empty((len(x), len(self)))
+        for start in range(0, len(x), 256):
+            diff = x[start : start + 256, None] - self._means[None]
+            z = np.einsum("mde,nme->nmd", self._linv, diff)
+            comp = self._const[None] - 0.5 * (z**2).sum(axis=-1)
+            out[start : start + 256] = np.logaddexp.reduceat(comp, self._starts, axis=1)
+        return out
 
     def contextual_rows(
         self, index: int, n: int, rng: np.random.Generator, tries: int = 100
