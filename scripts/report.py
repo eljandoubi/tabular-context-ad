@@ -12,14 +12,17 @@ from contextad.report import (
     SYNTHETIC_ROWS,
     TESTPOOL_ROWS,
     ablation_table,
+    adbench_paired,
     adbench_table,
     compute_table,
     contamination_table,
     context_size_table,
     dataset_table,
+    duplicates_table,
     load,
     markdown,
     paired_differences,
+    read_csv,
     schema_table,
     synthetic_table,
 )
@@ -78,6 +81,22 @@ def build_sections(root: Path):
         sections.append(("ADBench, AUROC", "adbench_auroc", adbench_table(adbench)))
         sections.append(
             ("ADBench, AUPRC", "adbench_auprc", adbench_table(adbench, "auprc"))
+        )
+        sections.append(
+            (
+                "ADBench, paired differences in AUROC over tables and splits",
+                "adbench_paired",
+                adbench_paired(adbench),
+            )
+        )
+    counts, repeated = root / "duplicates.csv", root / "duplicate_rows.csv"
+    if counts.exists() and repeated.exists():
+        sections.append(
+            (
+                "ADBench, test rows with an exact copy in the training rows",
+                "adbench_duplicates",
+                duplicates_table(read_csv(counts), read_csv(repeated)),
+            )
         )
     if synthetic and adbench:
         sections.append(

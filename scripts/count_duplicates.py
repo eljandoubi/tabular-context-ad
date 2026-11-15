@@ -17,11 +17,11 @@ import numpy as np
 
 from contextad.adbench import TABLES, has_copy, load_table, split_table, standardize
 from contextad.evaluate import group_contexts
+from contextad.report import COPY_FIELDS
 from contextad.training import CONTEXT_SIZES
 
 SPLITS = {"plain": False, "grouped": True}
 COUNT_FIELDS = ["table", "seed", "split", "label", "test_rows"]
-COPY_FIELDS = ["copy_in_train", "copy_in_context", "copy_in_any_context"]
 COUNT_FIELDS += COPY_FIELDS + ["clipped_" + name for name in COPY_FIELDS]
 TABLE_FIELDS = ["table", "rows", "distinct_rows", "rows_in_repeats", "largest_group"]
 

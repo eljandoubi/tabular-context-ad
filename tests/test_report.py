@@ -8,15 +8,18 @@ from contextad.report import (
     ablation_table,
     adbench_by_dataset,
     adbench_mean,
+    adbench_paired,
     adbench_table,
     compute_table,
     contamination_table,
     context_size_table,
     dataset_table,
+    duplicates_table,
     fmt,
     markdown,
     mean_std,
     paired_differences,
+    read_csv,
     schema_table,
     synthetic_table,
 )
@@ -182,3 +185,60 @@ def test_dataset_table_reports_size_and_anomaly_share():
 def test_markdown_layout():
     text = markdown(["a", "b"], [["1", "2"], ["3", "4"]])
     assert text.splitlines() == ["| a | b |", "|---|---|", "| 1 | 2 |", "| 3 | 4 |"]
+
+
+def test_paired_differences_over_tables_and_splits():
+    runs = []
+    for dataset, gap in (("a", 0.1), ("b", 0.1), ("c", -0.1)):
+        for split in range(4):
+            run = adbench_run(dataset)
+            run["main"]["context_net"] = block(0.8 + gap + 0.01 * split)
+            runs.append(run)
+    pairs = [
+        ("context_net", "masked_mlp", "gap"),
+        ("iforest", "lof", "none"),
+    ]
+    header, body = adbench_paired(runs, pairs, resamples=2000, seed=1)
+    assert header[0] == "paired difference in AUROC" and len(header) == len(body[0])
+    name, mean, interval, tables, splits = body[0]
+    low, high = map(float, interval.strip("[]").split(", "))
+    assert mean == "+0.048" and low < 0.048 < high
+    assert (tables, splits) == ("2 of 3", "8 of 12")
+    assert body[1] == ["none", "+0.000", "[+0.000, +0.000]", "0 of 3", "0 of 12"]
+    assert adbench_paired(runs, pairs, resamples=2000, seed=1) == (header, body)
+
+
+def test_duplicates_table_sums_the_splits_and_the_grouped_copies():
+    fields = ["table", "seed", "split", "label", "test_rows", "copy_in_train"]
+    fields += ["copy_in_context", "copy_in_any_context"]
+    values = [
+        ("a", "0", "plain", "0", "100", "30", "10", "20"),
+        ("a", "1", "plain", "0", "100", "20", "5", "12"),
+        ("a", "0", "plain", "1", "50", "2", "0", "0"),
+        ("a", "0", "grouped", "0", "90", "0", "0", "1"),
+        ("a", "0", "grouped", "1", "40", "0", "0", "0"),
+        ("b", "0", "plain", "0", "10", "0", "0", "0"),
+        ("b", "0", "plain", "1", "5", "0", "0", "0"),
+    ]
+    counts = [dict(zip(fields, row, strict=True)) for row in values]
+    tables = [
+        {"table": "a", "rows": "1234", "rows_in_repeats": "300"},
+        {"table": "b", "rows": "15", "rows_in_repeats": "0"},
+    ]
+    header, body = duplicates_table(counts, tables)
+    assert len(header) == len(body[0])
+    assert body[0] == [
+        "a",
+        "1,234",
+        "300",
+        "50 of 200 / 2 of 50",
+        "15 of 200 / 0 of 50",
+        "1",
+    ]
+    assert body[1][3:] == ["0 of 10 / 0 of 5", "0 of 10 / 0 of 5", "0"]
+
+
+def test_read_csv_returns_one_dict_per_row(tmp_path):
+    path = tmp_path / "x.csv"
+    path.write_text("a,b\n1,2\n3,4\n")
+    assert read_csv(path) == [{"a": "1", "b": "2"}, {"a": "3", "b": "4"}]

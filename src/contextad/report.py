@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 
@@ -47,10 +48,50 @@ CONTEXT_METHODS = [
     ("knn_context", "kNN to context"),
     ("mahalanobis_context", "Mahalanobis to context"),
 ]
+ADBENCH_PAIRS = [
+    ("context_net", "context_net_k0", "standardized error: context k=32 minus k=0"),
+    ("context_net", "masked_mlp", "standardized error: context k=32 minus masked MLP"),
+    (
+        "context_net",
+        "knn_context",
+        "standardized error: context k=32 minus kNN to context",
+    ),
+    (
+        "context_net",
+        "iforest",
+        "standardized error: context k=32 minus Isolation Forest",
+    ),
+    (
+        "context_net_mse",
+        "masked_mlp_mse",
+        "squared error: context k=32 minus masked MLP",
+    ),
+    (
+        "context_net_mse",
+        "knn_context",
+        "squared error: context k=32 minus kNN to context",
+    ),
+    (
+        "context_net_mse",
+        "iforest",
+        "squared error: context k=32 minus Isolation Forest",
+    ),
+    (
+        "context_net_mse",
+        "context_net",
+        "context k=32: squared minus standardized error",
+    ),
+]
+COPY_FIELDS = ["copy_in_train", "copy_in_context", "copy_in_any_context"]
 
 
 def load(directory: Path, pattern: str) -> list[dict]:
     return [json.loads(p.read_text()) for p in sorted(directory.glob(pattern))]
+
+
+def read_csv(path: Path) -> list[dict]:
+    with path.open(newline="") as handle:
+        return list(csv.DictReader(handle))
 
 
 def mean_std(values) -> tuple[float, float]:
@@ -128,6 +169,82 @@ def adbench_mean(runs, method, metric="auroc", setting="main") -> float:
         for rs in adbench_by_dataset(runs).values()
     ]
     return float(np.mean(per_table))
+
+
+def adbench_paired(runs, pairs=ADBENCH_PAIRS, resamples: int = 10_000, seed: int = 0):
+    """Paired AUROC differences over tables and splits with a bootstrap interval.
+
+    The difference is the mean over tables of the mean over splits. The interval
+    resamples the tables with replacement, then the splits inside each drawn table.
+    """
+    rng = np.random.default_rng(seed)
+    by_dataset = adbench_by_dataset(runs)
+    header = ["paired difference in AUROC", "mean", "95 % interval"]
+    header += ["tables above 0", "splits above 0"]
+    body = []
+    for a, b, name in pairs:
+        diffs = np.array(
+            [
+                [adbench_value(r, a) - adbench_value(r, b) for r in rs]
+                for rs in by_dataset.values()
+            ]
+        )
+        n_tables, n_splits = diffs.shape
+        tables = rng.integers(n_tables, size=(resamples, n_tables, 1))
+        splits = rng.integers(n_splits, size=(resamples, n_tables, n_splits))
+        boot = diffs[tables, splits].mean(axis=(1, 2))
+        low, high = np.percentile(boot, [2.5, 97.5])
+        body.append(
+            [
+                name,
+                f"{diffs.mean():+.3f}",
+                f"[{low:+.3f}, {high:+.3f}]",
+                f"{int((diffs.mean(axis=1) > 0).sum())} of {n_tables}",
+                f"{int((diffs > 0).sum())} of {diffs.size}",
+            ]
+        )
+    return header, body
+
+
+def copies_cell(counts, table, split, field):
+    """'found of tested' for normal and anomalous test rows, summed over the splits."""
+    parts = []
+    for label in ("0", "1"):
+        rows = [
+            c
+            for c in counts
+            if (c["table"], c["split"], c["label"]) == (table, split, label)
+        ]
+        tested = sum(int(c["test_rows"]) for c in rows)
+        parts.append(f"{sum(int(c[field]) for c in rows):,} of {tested:,}")
+    return " / ".join(parts)
+
+
+def duplicates_table(counts, tables):
+    """Exact copies of test rows, from duplicates.csv and duplicate_rows.csv."""
+    header = ["table", "rows", "rows in a repeated vector"]
+    header += ["plain split: copy in the training rows"]
+    header += ["plain split: copy in a scored context", "grouped split: any copy"]
+    body = []
+    for table in tables:
+        name = table["table"]
+        grouped = sum(
+            int(c[field])
+            for c in counts
+            if c["table"] == name and c["split"] == "grouped"
+            for field in COPY_FIELDS
+        )
+        body.append(
+            [
+                name,
+                f"{int(table['rows']):,}",
+                table["rows_in_repeats"],
+                copies_cell(counts, name, "plain", "copy_in_train"),
+                copies_cell(counts, name, "plain", "copy_in_context"),
+                str(grouped),
+            ]
+        )
+    return header, body
 
 
 def context_size_table(synthetic, adbench):
