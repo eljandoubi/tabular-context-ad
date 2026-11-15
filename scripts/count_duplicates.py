@@ -4,7 +4,8 @@ usage: python scripts/count_duplicates.py [--root data/adbench] [--out results]
 Replays the split and the context draws of scripts/run_adbench.py for the plain
 stratified split and for the split that keeps identical rows together. A copy is a row
 with the same value in every column. Writes duplicates.csv (one row per table, seed,
-split and label) and duplicate_rows.csv (repeated feature vectors per table) to --out.
+split and label) and duplicate_rows.csv (repeated feature vectors per table, and how
+many of them carry both labels) to --out.
 The clipped_ columns repeat the counts on the standardized columns, where clipping at
 8 standard deviations can make two different rows equal.
 """
@@ -24,6 +25,7 @@ SPLITS = {"plain": False, "grouped": True}
 COUNT_FIELDS = ["table", "seed", "split", "label", "test_rows"]
 COUNT_FIELDS += COPY_FIELDS + ["clipped_" + name for name in COPY_FIELDS]
 TABLE_FIELDS = ["table", "rows", "distinct_rows", "rows_in_repeats", "largest_group"]
+TABLE_FIELDS += ["mixed_label_vectors"]
 
 
 def parse_args():
@@ -79,10 +81,12 @@ def count_split(table, x, y, seed, split, k, block):
     return rows
 
 
-def repeated_rows(table, x):
-    _, count = np.unique(x, axis=0, return_counts=True)
+def repeated_rows(table, x, y):
+    _, group, count = np.unique(x, axis=0, return_inverse=True, return_counts=True)
+    anomalies = np.bincount(group.reshape(-1), weights=y)
+    mixed = int(((anomalies > 0) & (anomalies < count)).sum())
     repeated = int(count[count > 1].sum())
-    return [table, len(x), len(count), repeated, int(count.max())]
+    return [table, len(x), len(count), repeated, int(count.max()), mixed]
 
 
 def write_csv(path, header, rows):
@@ -97,7 +101,7 @@ def main():
     counts, tables = [], []
     for table in args.tables:
         x, y = load_table(table, args.root)
-        tables.append(repeated_rows(table, x))
+        tables.append(repeated_rows(table, x, y))
         for seed in range(args.seeds):
             for split in SPLITS:
                 counts += count_split(table, x, y, seed, split, args.k, args.block)

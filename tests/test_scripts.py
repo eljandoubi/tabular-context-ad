@@ -80,6 +80,8 @@ def test_duplicate_count_finds_copies_in_the_plain_split_only(tmp_path):
     counts = rng.integers(1, 5, size=150)
     x = np.repeat(rng.normal(size=(150, 4)), counts, axis=0)
     y = np.repeat((np.arange(150) < 15).astype(int), counts)
+    first = np.cumsum(counts) - counts
+    y[first[np.argmax(counts > 1)] + 1] ^= 1
     np.savez(tmp_path / "6_cardio.npz", X=x, y=y)
     path = run(
         "count_duplicates.py",
@@ -102,3 +104,4 @@ def test_duplicate_count_finds_copies_in_the_plain_split_only(tmp_path):
         assert clipped == found
     table = list(csv.DictReader((path.parent / "duplicate_rows.csv").open()))
     assert table[0]["rows"] == str(len(x)) and table[0]["distinct_rows"] == "150"
+    assert table[0]["mixed_label_vectors"] == "1"
